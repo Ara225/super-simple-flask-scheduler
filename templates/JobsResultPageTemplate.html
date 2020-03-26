@@ -1,0 +1,35 @@
+<title>Flask Job Scheduler</title>
+<link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/">Home</a>
+        <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+        <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
+        <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
+    </div>
+</nav>
+<div class="container">
+    <h2>Jobs</h2>
+    {% if jobs %}
+        {% for job in jobs %}
+            <div class="alert alert-info">
+                <h3>{{ job.jobId }}</h3> 
+                Started: {{ job.timeStarted }} Completed: {{ job.timeCompleted }} <br>
+                Return code: {{ job.returnCode }} <br>
+                {% if job.stdout != None %}
+                    Standard Out: <br>
+                    {% for line in job.stdout.split('\\n') %}
+                        {{ line }} <br>
+                    {% endfor %}  
+                {% endif %}
+                {% if job.stderr != None %}
+                    Standard Error: <br>
+                    {% for line in job.stderr.split('\n') %}
+                        {{ line }} <br>
+                    {% endfor %}  
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>

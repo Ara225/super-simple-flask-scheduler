@@ -1,0 +1,53 @@
+<title>Flask Job Scheduler</title>
+<link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/">Home</a>
+        <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+        <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
+        <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
+    </div>
+</nav>
+<div class="container">
+    <br>
+    <h2>Add Job</h2>
+    <br>
+    <form action="" method="post" role="form">
+        <div class="form-group">
+            <input type="text" class="form-control" id="jobId" name="jobId" placeholder="Name/ID of the new job">
+        </div>
+        <div class="form-group">
+            <input type="text" class="form-control" id="command" name="command" placeholder="Command to run">
+        </div>
+        <div class="form-group">
+            <select class="form-control" id="typeSelector" name="typeSelector">
+               <option value = "" selected></option>
+               <option value = "Python Job">Python Job</option>
+               <option value = "Shell Job">Shell Job</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    </form>
+</div>
+
+<div class="container"> 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if "Error" not in message[1]: %}
+                    <div class="alert alert-info">
+                        <strong>Success! </strong> {{ message[1] }}
+                    </div>
+                {% endif %}
+                {% if "Error" in message[1]: %}
+                    <div class="alert alert-warning">
+                        {{ message[1] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
