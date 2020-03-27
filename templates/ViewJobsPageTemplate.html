@@ -10,14 +10,22 @@
     </div>
 </nav>
 <div class="container">
-    <h2>Jobs</h2>
+    <h2>Pending Jobs</h2>
+    <!-- If the jobs object passed was not empty -->
     {% if jobs %}
+        <!-- Loop through jobs -->
         {% for job in jobs %}
             <div class="alert alert-info">
+            <!-- Loop through keys in each job's dict and print them out -->
             {% for j in job %}
                {{ j }} : {{ job[j] }} <br>
             {% endfor %}
             </div>
         {% endfor %}
+    {% else %}
+        <br>
+        <div class="alert alert-warning">
+            No Pending Jobs
+        </div>
     {% endif %}
 </div>
