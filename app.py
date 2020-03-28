@@ -73,24 +73,24 @@ def addJob():
     # If this is a post request
     if request.method == 'POST':
         global JobResultsList
-        
-        # If the form validates (see forms.py) & the job type is Shell Job
+        print(request.form)
         if form.validate() and request.form['typeSelector'] == 'Shell Job':
-            # Schedule a shell job now, args are passed to the function not shell command
-            scheduler.add_job(
-                            request.form['jobId'], 
-                            '__main__:runShellCommandJob', 
-                            args=(
-                                request.form['command'], 
-                                request.form['jobId'], 
-                                JobResultsList
-                            ),
-                            trigger='date', 
-                            run_date=datetime.now()
-                        )
-            # This causes this to be displayed on the screen under the form
-            flash('Job added')
-        
+            if request.form.get('timeField', '') == '' or request.form.get('dateField', '') == '':
+                # Schedule a shell job now, args are passed to the function not shell command
+                scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
+                                 args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                 trigger='date', run_date=datetime.now())
+                # This causes this to be displayed on the screen under the form
+                flash('Shell job scheduled for now')
+            else:
+                # Get a date time object out of the input
+                whenToRun = datetime.fromisoformat(request.form['dateField'] + ' ' + request.form['timeField'])
+                # Schedule a shell job , args are passed to the function not shell command
+                scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
+                                 args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                 trigger='date', run_date=whenToRun)
+                flash('Shell job scheduled for ' + str(whenToRun))
+                
         # Python job type 
         elif form.validate() and request.form['typeSelector'] == 'Python Job':
             flash('Error: Not yet implemented')

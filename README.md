@@ -7,9 +7,6 @@ Basically, it's supposed to be the simplest and easiest to use/understand useful
 Mainly a personal keep-busy sort of project. Loosely designed to fill a gap in that there aren't any complete simple web 
 schedulers (that I could find).
 
-## Is it useful? 
-Not right now. It may be in the future.
-
 ## TODO
 * Implement optional persistent job storage 
 * Implement Python job functionality
@@ -23,12 +20,15 @@ Not right now. It may be in the future.
 ## Contributions/Thoughts
 Very welcome
 
-## Release Notes
+## Change log
 ### 0.0.1
 Outline of app, capability to run shell commands now, and store results in memory.
 
 ### 0.0.2
 Refactoring, documentation of the code 
+
+### 0.0.3
+Add basic scheduling function, play with the frontend a bit
 
 # Overview Of Files
 ## app.py: App main entry point 
@@ -41,11 +41,11 @@ Refactoring, documentation of the code
 * sleep from time
 * json
 ##### Internal
-* jobs - Definition of the diffrent job types and the JobResults class to contain results
+* jobs - Definition of the different job types and the JobResults class to contain results
 * forms - Definition of various forms used
 ##### Other
 * flask - Basic web front end functionality
-* flask_apscheduler - scheduler functionality intergrated with Flask
+* flask_apscheduler - scheduler functionality integrated with Flask
 * flask_apscheduler.api get_jobs - Return jobs objects in Json
 
 ### Purpose

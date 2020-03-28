@@ -1,7 +1,8 @@
 '''
 Forms.py: Functions and classes related to jobs
 '''
-from wtforms import Form, TextField, validators, SubmitField, SelectField
+from wtforms import Form, TextField, validators, SubmitField, SelectField, RadioField, ValidationError
+from pprint import pprint
 
 class AddJobForm(Form):
     '''
@@ -16,3 +17,6 @@ class AddJobForm(Form):
                    validators=[validators.none_of([('', '')])], 
                    choices=[('', ''), ('Python Job', 'Python Job'), ('Shell Job', 'Shell Job')]
                    )
+    #scheduleType = RadioField('scheduleType', choices=[('Now','Now'), ('Later','Later')], validators=[validators.optional()])
+    timeField = TextField('timeField', validators=[validators.optional()])
+    dateField = TextField('dateField', validators=[validators.optional()])

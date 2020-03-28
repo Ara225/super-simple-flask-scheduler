@@ -1,57 +1,73 @@
-<title>Flask Job Scheduler</title>
-<link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/">Home</a>
-        <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
-        <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
-        <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
-    </div>
-</nav>
-<div class="container">
-    <br>
-    <h2>Schedule Job</h2>
-    <br>
-    <form action="" method="post" role="form">
-        <!-- Field for name or ID of the new job  -->
-        <div class="form-group">
-            <input type="text" class="form-control" id="jobId" name="jobId" placeholder="Name/ID of the new job">
-        </div>
-        <!-- Field for the command to run -->
-        <div class="form-group">
-            <input type="text" class="form-control" id="command" name="command" placeholder="Command to run">
-        </div>
-        <!-- Dropdown field to select type of job  -->
-        <div class="form-group">
-            <select class="form-control" id="typeSelector" name="typeSelector">
-               <option value = "" selected></option>
-               <option value = "Python Job">Python Job</option>
-               <option value = "Shell Job">Shell Job</option>
-            </select>
-        </div>
-        <!-- Submit button -->
-        <div class="form-group">
-            <button type="submit" class="btn btn-success">Submit</button>
-        </div>
-    </form>
-</div>
+<!DOCTYPE html>
 
-<div class="container"> 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for message in messages %}
-                {% if "Error" not in message[1]: %}
-                    <div class="alert alert-info">
-                        <strong>Success! </strong> {{ message[1] }}
-                    </div>
-                {% endif %}
-                {% if "Error" in message[1]: %}
-                    <div class="alert alert-warning">
-                        {{ message[1] }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-</div>
+<head>
+    <title>Flask Job Scheduler</title>
+</head>
+
+<body>
+    <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="/">Home</a>
+            <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+            <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
+            <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
+        </div>
+    </nav>
+    <br>
+    <div class="container" style="padding-left: 100px; padding-right: 100px; background-color: lightblue; border-radius: 25px;">
+        <br>
+        <h2>Schedule Job</h2>
+        <br>
+        <h4>Details</h4>
+        <form action="" method="post" role="form">
+            <!-- Field for name or ID of the new job  -->
+            <div class="form-group">
+                <input type="text" class="form-control" id="jobId" name="jobId" placeholder="Name/ID of the new job">
+            </div>
+            <!-- Field for the command to run -->
+            <div class="form-group">
+                <input type="text" class="form-control" id="command" name="command" placeholder="Command to run">
+            </div>
+            <!-- Dropdown field to select type of job  -->
+            <div class="form-group">
+                <select class="form-control" id="typeSelector" name="typeSelector">
+                    <option value="" selected></option>
+                    <option value="Python Job">Python Job</option>
+                    <option value="Shell Job">Shell Job</option>
+                </select>
+                <br>
+                <h4>Choose a Time & Date</h4>
+                <input type="time" class="form-control" id="timeField" name="timeField"
+                    style="margin-left: 20px; margin-bottom: 10px; width: 150px;">
+                <input type="date" class="form-control" id="dateField" name="dateField"
+                    style="margin-left: 20px; margin-bottom: 10px; width: 150px;">
+            </div>
+            <!-- Submit button -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">Submit</button>
+                <br>
+            </div>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for message in messages %}
+                    {% if "Error" not in message[1]: %}
+                        <div class="alert alert-info">
+                            <strong>Success! </strong> {{ message[1] }}
+                        </div>
+                    {% endif %}
+                    {% if "Error" in message[1]: %}
+                        <div class="alert alert-warning">
+                            {{ message[1] }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <br>
+    </div>
+</body>
+
+</html>
