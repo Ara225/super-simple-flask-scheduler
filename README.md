@@ -29,38 +29,3 @@ Refactoring, documentation of the code
 
 ### 0.0.3
 Add basic scheduling function, play with the frontend a bit
-
-# Overview Of Files
-## app.py: App main entry point 
-
-### Imports:
-#### Standard Library
-* datetime
-* random
-* string
-* sleep from time
-* json
-##### Internal
-* jobs - Definition of the different job types and the JobResults class to contain results
-* forms - Definition of various forms used
-##### Other
-* flask - Basic web front end functionality
-* flask_apscheduler - scheduler functionality integrated with Flask
-* flask_apscheduler.api get_jobs - Return jobs objects in Json
-
-### Purpose
-* Initialize the scheduler and Flask app
-* Add routes to the app
-
-### Routes
-* / -> index() | Supports: GET
-* /getjobs -> getJobs() | Supports: GET
-* /getjobsresults -> getJobsResults() | Supports: GET
-* /addjob -> addJob() | Supports: GET POST
-
-## jobs.py: Functions and classes related to jobs
-## Purpose
-* Provide JobResults class for easy access to results of jobs 
-* Provide functions for different job types
-
-## Forms.py: Functions and classes related to jobs
