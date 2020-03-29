@@ -8,6 +8,8 @@
 * string
 * sleep from time
 * json
+* match from re
+* os
 ##### Internal
 * jobs - Definition of the diffrent job types and the JobResults class to contain results
 * forms - Definition of various forms used
@@ -36,16 +38,26 @@ from time import sleep
 import json
 from jobs import *
 from forms import *
+from re import match
+import os
 
 app = None
 scheduler = None
 JobResultsList = []
+wasCleaned = False
 
 class Config(object):
     '''
     Config for the Flask APScheduler. If you want the API enabled set SCHEDULER_API_ENABLED to True 
     '''
-    JOBS = []
+    JOBS = [
+        {'id': 'CleanupJob',
+         'func': '__main__:CleanupJob', 
+         'args': (JobResultsList), 
+         'trigger':'interval', 
+         'hours': 1
+        }
+    ]
     SCHEDULER_API_ENABLED = False
 
 def index(): 
@@ -72,23 +84,68 @@ def addJob():
     
     # If this is a post request
     if request.method == 'POST':
+        print(request.form)
         global JobResultsList
         if form.validate() and request.form['typeSelector'] == 'Shell Job':
-            if request.form.get('timeField', '') == '' or request.form.get('dateField', '') == '':
-                # Schedule a shell job now, args are passed to the function not shell command
-                scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
-                                 args=(request.form['command'], request.form['jobId'], JobResultsList), 
-                                 trigger='date', run_date=datetime.now())
-                # This causes this to be displayed on the screen under the form
-                flash('Shell job scheduled for now')
-            else:
+            if request.form.get('DateTimeField', '') != '' :
                 # Get a date time object out of the input
-                whenToRun = datetime.fromisoformat(request.form['dateField'] + ' ' + request.form['timeField'])
-                # Schedule a shell job, args are passed to the function not shell command
-                scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
-                                 args=(request.form['command'], request.form['jobId'], JobResultsList), 
-                                 trigger='date', run_date=whenToRun)
-                flash('Shell job scheduled for ' + str(whenToRun))
+                whenToRun = datetime.fromisoformat(request.form['DateTimeField'])
+                difference = whenToRun - datetime.now()
+                # This checks if the date given is in the past. The days will be at least -1 if so
+                if difference.days > 0:
+                    # Schedule a shell job, args are passed to the function not shell command
+                    scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
+                                     args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                     trigger='date', run_date=whenToRun)
+                    flash('Shell job scheduled for ' + str(whenToRun))
+                else:
+                    flash('Error: Past date selected, please try again')
+            else:
+                intervalFieldsHaveValue = None
+                # These can be returned even if they have nothing or only whitespace in them so we need to do some processing
+                intervalFields = [request.form.get('Seconds', ''), request.form.get('Minutes', ''), request.form.get('Hours', ''), 
+                            request.form.get('Days', ''), request.form.get('Weeks', '')]
+                # These fields come out as strings so need to do some processing to make them work
+                count = 0
+                for i in intervalFields:
+                    # If field isn't blank
+                    if i != '' and i.replace(' ', '') != '' and i != None:
+                        # If it's made up entirely of numbers. We have client side validation (pattern field in text fields) 
+                        # but there's no point in not being careful
+                        if match(r'^[0-9]*$', i):
+                            intervalFieldsHaveValue = True
+                            intervalFields[count] = int(i)
+                        else:
+                            flash('Error: Invalid input - non-number chars in interval field')
+                    else:
+                        intervalFields[count] = 0
+                    count += 1
+                if intervalFieldsHaveValue == True:
+                    # Validate that the seconds, hours and minutes are less than 60
+                    if intervalFields[0] >= 60 or intervalFields[1] >= 60 or intervalFields[2] >= 60:
+                        flash('Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty')
+                    else:
+                        schedulerEnd = request.form.get('endDateTimeField', None)
+                        schedulerStart = request.form.get('startDateTimeField', None)
+                        if schedulerStart == '':
+                            schedulerStart = None
+                        if schedulerEnd == '':
+                            schedulerEnd = None            
+                        # Schedule a shell job to run at the requested interval, args are passed to the function not shell command
+                        scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
+                                         args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                         trigger='interval', seconds=intervalFields[0], minutes=intervalFields[1], 
+                                         hours=intervalFields[2], days=intervalFields[3], weeks=intervalFields[4], 
+                                         start_date=schedulerStart, end_date=schedulerEnd)
+                        # This causes this to be displayed on the screen under the form
+                        flash('Shell job scheduled to run at interval')
+                else:
+                    # Schedule a shell job now, args are passed to the function not shell command
+                    scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
+                                     args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                     trigger='date', run_date=datetime.now())
+                    # This causes this to be displayed on the screen under the form
+                    flash('Shell job scheduled for now')
                 
         # Python job type 
         elif form.validate() and request.form['typeSelector'] == 'Python Job':
@@ -96,7 +153,7 @@ def addJob():
         
         # This causes this error to be displayed on the screen under the form if the form doesn't validate
         elif not form.validate(): 
-            flash('Error: All the form fields are required. ')
+            flash('Error: Required Form Fields Empty')
         
         # Other errors
         else:
@@ -110,7 +167,9 @@ def getJobs():
     :returns: rendered template ViewJobsPageTemplate.html
     #TODO Make this look nice
     '''
+
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))
+
     return render_template('ViewJobsPageTemplate.html', jobs=jobs) 
 
 def getJobsResults():
@@ -118,7 +177,21 @@ def getJobsResults():
     Render job results nicely
     :returns: rendered template JobsResultPageTemplate.html
     '''
-    return render_template('JobsResultPageTemplate.html', jobs=JobResultsList) 
+    return render_template('JobsResultPageTemplate.html', jobs=JobResultsList, wasCleaned=wasCleaned) 
+
+def CleanupJob():
+    '''
+    Function to clean up JobResultsList to prevent it from getting too big 
+    TODO improve functionality
+    '''
+    global JobResultsList
+    if len(JobResultsList) > 100:
+        with open('JobResultsDump.txt', 'w') as f:
+            f.writelines(JobResultsList)
+        JobResultsList = []
+        global wasCleaned 
+        wasCleaned = True
+    
 
 def runApp():
     '''

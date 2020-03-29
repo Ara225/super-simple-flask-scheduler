@@ -11,29 +11,35 @@
 </nav>
 <div class="container-lg col-7">
     <h2>Completed Jobs</h2>
+    {% if wasCleaned != False %}
+       <br>
+       <div class="alert alert-warning">
+           Jobs result list was cleaned recently: see JobResultsDump.txt
+       </div>
+   {% endif %}
     <!-- If the JobResultsList passed to the template is not empty -->
     {% if jobs %}
         <!-- Iterate through JobResults objects -->
         {% for job in jobs %}
             <div class="alert alert-info">
-                <h3>{{ job.jobId }}</h3> 
-                Started: {{ job.timeStarted }} Completed: {{ job.timeCompleted }} <br>
-                Job type: {{ job.jobType }} <br>
+                <h3>{{ job['jobId'] }}</h3> 
+                Started: {{ job['timeStarted'] }} Completed: {{ job['timeCompleted'] }} <br>
+                Job type: {{ job['jobType'] }} <br>
                 <!-- The return code will only be given for remote and shell jobs -->
-                {% if job.returnCode != None %}
-                    Return code: {{ job.returnCode }} <br>
+                {% if job.get('returnCode', None) != None %}
+                    Return code: {{ job['returnCode'] }} <br>
                 {% endif %}
                 <!-- If there was stdout, split lines at the new line, the new lines are tidied up in jobs.py -->
-                {% if job.stdout != None %}
+                {% if job.get('stdout', None) != None %}
                     Standard Out: <br>
-                    {% for line in job.stdout.split('\n') %}
+                    {% for line in job['stdout'] %}
                         {{ line }} <br>
                     {% endfor %}  
                 {% endif %}
                 <!-- If there was stderr, split lines at the new line, the new lines are tidied up in jobs.py -->
-                {% if job.stderr != None %}
+                {% if job.get('stderr', None) != None %}
                     Standard Error: <br>
-                    {% for line in job.stderr.split('\n') %}
+                    {% for line in job['stderr'] %} 
                         {{ line }} <br>
                     {% endfor %}  
                 {% endif %}
