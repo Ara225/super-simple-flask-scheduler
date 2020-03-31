@@ -32,3 +32,6 @@ Start implementing interval scheduling
 
 ### 0.0.5 
 Finish interval scheduling, add a cleanup job to tidy JobResultsList, remove unused JS
+
+### 0.0.6
+Start implementing tests

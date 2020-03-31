@@ -53,7 +53,6 @@ class Config(object):
     JOBS = [
         {'id': 'CleanupJob',
          'func': '__main__:CleanupJob', 
-         'args': (JobResultsList), 
          'trigger':'interval', 
          'hours': 1
         }
@@ -84,7 +83,6 @@ def addJob():
     
     # If this is a post request
     if request.method == 'POST':
-        print(request.form)
         global JobResultsList
         if form.validate() and request.form['typeSelector'] == 'Shell Job':
             if request.form.get('DateTimeField', '') != '' :
@@ -212,6 +210,7 @@ def runApp():
     app.add_url_rule("/getjobs", "/getjobs", getJobs, methods=['GET'])
     app.add_url_rule("/getjobsresults", "/getjobsresults", getJobsResults, methods=['GET'])
     app.add_url_rule("/addjob", "/addjob", addJob, methods=['GET', 'POST'])
+    return app
 
 if __name__ == '__main__': 
     runApp()        
