@@ -123,12 +123,12 @@ def addJob():
                     if intervalFields[0] >= 60 or intervalFields[1] >= 60 or intervalFields[2] >= 60:
                         flash('Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty')
                     else:
-                        schedulerEnd = request.form.get('endDateTimeField', None)
-                        schedulerStart = request.form.get('startDateTimeField', None)
+                        schedulerEnd = request.form.get('EndDateTimeField', None)
+                        schedulerStart = request.form.get('StartDateTimeField', None)
                         if schedulerStart == '':
                             schedulerStart = None
                         if schedulerEnd == '':
-                            schedulerEnd = None            
+                            schedulerEnd = None  
                         # Schedule a shell job to run at the requested interval, args are passed to the function not shell command
                         scheduler.add_job(request.form['jobId'], '__main__:runShellCommandJob', 
                                          args=(request.form['command'], request.form['jobId'], JobResultsList), 
