@@ -11,7 +11,7 @@ from re import match
 
 def runShellCommandJob(command, jobId, JobResultsList):
     """
-    Use subprocess to run a shell command, get the results, instigate a JobResults object with the result, and append it to JobResultsList 
+    Use subprocess to run a shell command, get the results, create a dict with the result, and append it to JobResultsList 
         :param command: The command to run
         :param jobId: The name of the job
     """
@@ -29,13 +29,14 @@ def runShellCommandJob(command, jobId, JobResultsList):
         currentJobResults['stdout'] = e.stdout().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
         currentJobResults['stderr'] = e.stderr().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
         currentJobResults['returnCode'] = e.returncode
-    # Other exceptions, we don't get return codes here so set to N/A
+    # Other exceptions, we don't get return codes here
     except Exception as e:
         currentJobResults['stderr'] = str(e).replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
-        currentJobResults['returnCode'] = 'N/A'
+        currentJobResults['returnCode'] = 'Unspecified'
 
     currentJobResults['timeCompleted'] = datetime.now()
     currentJobResults['jobType'] = 'Shell Job'
+    currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
 def scheduleOneOffJob(jobType, request, scheduler, JobResultsList):
@@ -53,9 +54,7 @@ def scheduleOneOffJob(jobType, request, scheduler, JobResultsList):
     try:
         # Get a date time object out of the input
         whenToRun = datetime.fromisoformat(request.form['DateTimeField'])
-        difference = whenToRun - datetime.now()
-        # This checks if the date given is in the past. The days will be at least -1 if so
-        if difference.days > 0:
+        if compareDate(whenToRun):
             # Schedule a shell job, args are passed to the function not shell command
             scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
                              args=(request.form['command'], request.form['jobId'], JobResultsList), 
@@ -156,4 +155,20 @@ def runJobNow(jobType, request, scheduler, JobResultsList):
         return True
     except Exception as e:
         flash('Error: Unable to schedule task due to unexpected error ' + str(e))
+        return False
+
+def compareDate(dateToCompare):
+    difference = dateToCompare - datetime.now()
+    # This checks if the date given is in the past. The days will be at least -1 if  the day is equal or the same
+    # The problem is when it's the same day - the date always results in -1 so we deal with the special case first
+    if dateToCompare.day == datetime.now().day and dateToCompare.month == datetime.now().month and dateToCompare.year == datetime.now().year:
+        if dateToCompare.minute >= datetime.now().minute and dateToCompare.hour > datetime.now().hour:
+            return True
+        elif dateToCompare.minute > datetime.now().minute and dateToCompare.hour == datetime.now().hour:
+            return True
+        else:
+            return False
+    elif difference.days > 0:
+        return True
+    else:
         return False

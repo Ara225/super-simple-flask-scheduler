@@ -45,7 +45,6 @@ class TestScheduleJobs(TestCase):
             follow_redirects=True
         )
         self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
-
     
     def test_schedule_with_only_command_completed(self):
         self.client.get("/addjob")

@@ -9,19 +9,69 @@
         <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
     </div>
 </nav>
-<div class="container-lg col-7">
+<div class="container">
     <h2>Pending Jobs</h2>
+    <br>
     <!-- If the jobs object passed was not empty -->
     {% if jobs %}
+        <table class="table">
+        <thead>
+        <tr>
+        <th>Job Name</th>
+        <th>Function</th>
+        <th>Trigger</th>
+        <th>Repeat Every</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Next Run Time</th>
+        </tr>
+        </thead>
+        <tbody>
         <!-- Loop through jobs -->
         {% for job in jobs %}
-            <div class="alert alert-info">
-            <!-- Loop through keys in each job's dict and print them out -->
-            {% for j in job %}
-               {{ j }} : {{ job[j] }} <br>
-            {% endfor %}
-            </div>
+            <tr>
+            <td>{{ job['id'] }}</td>
+            <td>{{ job['func'] }}</td>
+            <td>{{ job['trigger'] }}</td>
+            <!-- The different interval schedule times -->
+            {% if job['trigger'] == 'interval' %}
+                <td>
+                {% if job.get('seconds') %}
+                    {{ job['seconds'] }} Second(s)<br>
+                {% endif %}
+                {% if job.get('minutes') %}
+                    {{ job['minutes'] }} Minutes(s)<br>
+                {% endif %}
+                {% if job.get('hours') %}
+                    {{ job['hours'] }} Hour(s)<br>
+                {% endif %}
+                {% if job.get('days') %}
+                    {{ job['days'] }} Day(s)<br>
+                {% endif %}
+                {% if job.get('weeks') %}
+                    {{ job['weeks'] }} Week(s)<br>
+                {% endif %}
+                </td>
+            {% else %}
+                <td>N/A</td>
+            {% endif %}
+  
+            {% if job.get('start_date') %}
+                <td>{{ job['start_date'].split('.')[0].split('T')[1] }}<br>{{ job['start_date'].split('T')[0] }}</td>
+            {% else %}
+                <td>N/A</td>
+            {% endif %}
+  
+            {% if job.get('end_date') %}
+                <td>{{ job['end_date'].split('.')[0].split('T')[1] }}<br>{{ job['end_date'].split('T')[0] }}</td>
+            {% else %}
+                <td>N/A</td>
+            {% endif %}
+            <td>{{ job['next_run_time'].split('.')[0].split('T')[1].split('+')[0] }}<br>{{ job['next_run_time'].split('T')[0] }}</td>
+            </tr>
         {% endfor %}
+        </tbody>
+        </table>
     {% else %}
         <br>
         <div class="alert alert-warning">

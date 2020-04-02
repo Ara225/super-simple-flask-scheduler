@@ -9,42 +9,77 @@
         <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
     </div>
 </nav>
-<div class="container-lg col-7">
+<div class="container">
     <h2>Completed Jobs</h2>
+    <br>
     {% if wasCleaned != False %}
-       <br>
        <div class="alert alert-warning">
-           Jobs result list was cleaned recently: see JobResultsDump.txt
+           Note: Jobs result list was cleaned recently: see JobResultsDump.txt
        </div>
    {% endif %}
-    <!-- If the JobResultsList passed to the template is not empty -->
-    {% if jobs %}
-        <!-- Iterate through JobResults objects -->
-        {% for job in jobs %}
-            <div class="alert alert-info">
-                <h3>{{ job['jobId'] }}</h3> 
-                Started: {{ job['timeStarted'] }} Completed: {{ job['timeCompleted'] }} <br>
-                Job type: {{ job['jobType'] }} <br>
-                <!-- The return code will only be given for remote and shell jobs -->
+        <!-- If the jobs object passed was not empty -->
+        {% if jobs %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Job Name</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>Job Type</th>
+                        <th>Command</th>
+                        <th>Return Code</th>
+                        <th>Standard Out</th>
+                        <th>Standard Err</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!-- Loop through jobs -->
+                {% for job in jobs %}
                 {% if job.get('returnCode', None) != None %}
-                    Return code: {{ job['returnCode'] }} <br>
+                    {% if job.get('returnCode') == 0 %}
+                        <tr class="table-success">
+                    {% else %}
+                        <tr class="table-warning">
+                    {% endif %}
+                {% else %}
+                    <tr>
                 {% endif %}
-                <!-- If there was stdout, split lines at the new line, the new lines are tidied up in jobs.py -->
-                {% if job.get('stdout', None) != None %}
-                    Standard Out: <br>
-                    {% for line in job['stdout'] %}
-                        {{ line }} <br>
-                    {% endfor %}  
-                {% endif %}
-                <!-- If there was stderr, split lines at the new line, the new lines are tidied up in jobs.py -->
-                {% if job.get('stderr', None) != None %}
-                    Standard Error: <br>
-                    {% for line in job['stderr'] %} 
-                        {{ line }} <br>
-                    {% endfor %}  
-                {% endif %}
-            </div>
-        {% endfor %}
+                        <td>{{ job['jobId'] }}</td>
+                        <td>{{ job['timeStarted'].hour }}:{{ job['timeStarted'].minute }}<br>{{ job['timeStarted'].date() }}</td>
+                        <td>{{ job['timeStarted'].hour }}:{{ job['timeStarted'].minute }}<br>{{ job['timeCompleted'].date() }}</td>
+                        <td>{{ job['jobType'] }}</td>
+                        <td>{{ job['command'] }}</td>
+                        <!-- The return code will only be given for remote and shell jobs -->
+                        {% if job.get('returnCode', None) != None %}
+                            <td>{{ job['returnCode'] }}</td>
+
+                        {% else %}
+                            <td>N/A</td>
+                        {% endif %}
+                    <!-- If there was stdout, split lines at the new line, the new lines are tidied up in jobs.py -->
+                    {% if job.get('stdout', None) != None %}
+                        <td>
+                        {% for line in job['stdout'] %}
+                            {{ line }} <br>
+                        {% endfor %}  
+                        </td>
+                    {% else %}
+                        <td>N/A</td>                
+                    {% endif %}
+                    <!-- If there was stderr, split lines at the new line, the new lines are tidied up in jobs.py -->
+                    {% if job.get('stderr', None) != None %}
+                        <td>
+                        {% for line in job['stderr'] %}
+                            {{ line }} <br>
+                        {% endfor %}  
+                        </td>
+                    {% else %}
+                        <td>N/A</td>                
+                    {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
         <br>
         <div class="alert alert-warning">
