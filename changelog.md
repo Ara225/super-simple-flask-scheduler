@@ -19,3 +19,6 @@ Start implementing tests
 
 ### 0.0.7
 Finish tests, refactor jobs code
+
+### 0.0.8
+Tidy and enhance frontend code

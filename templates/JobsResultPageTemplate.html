@@ -1,89 +1,102 @@
-<title>Flask Job Scheduler</title>
-<link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/">Home</a>
-        <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
-        <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
-        <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
-    </div>
-</nav>
-<div class="container">
-    <h2>Completed Jobs</h2>
-    <br>
-    {% if wasCleaned != False %}
-       <div class="alert alert-warning">
-           Note: Jobs result list was cleaned recently: see JobResultsDump.txt
-       </div>
-   {% endif %}
-        <!-- If the jobs object passed was not empty -->
-        {% if jobs %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Job Name</th>
-                        <th>Started</th>
-                        <th>Completed</th>
-                        <th>Job Type</th>
-                        <th>Command</th>
-                        <th>Return Code</th>
-                        <th>Standard Out</th>
-                        <th>Standard Err</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <!-- Loop through jobs -->
-                {% for job in jobs %}
-                {% if job.get('returnCode', None) != None %}
-                    {% if job.get('returnCode') == 0 %}
-                        <tr class="table-success">
-                    {% else %}
-                        <tr class="table-warning">
-                    {% endif %}
-                {% else %}
-                    <tr>
-                {% endif %}
-                        <td>{{ job['jobId'] }}</td>
-                        <td>{{ job['timeStarted'].hour }}:{{ job['timeStarted'].minute }}<br>{{ job['timeStarted'].date() }}</td>
-                        <td>{{ job['timeStarted'].hour }}:{{ job['timeStarted'].minute }}<br>{{ job['timeCompleted'].date() }}</td>
-                        <td>{{ job['jobType'] }}</td>
-                        <td>{{ job['command'] }}</td>
-                        <!-- The return code will only be given for remote and shell jobs -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Flask Job Scheduler</title>
+        <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+        <link rel="script" href="static/extra-scripts.js">
+        <script type="text/javascript" src="static/extra-scripts.js?ver=19"></script>  
+    </head>
+    <body>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="/">Home</a>
+                <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+                <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
+                <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
+            </div>
+        </nav>
+        <div class="container col-12">
+            <h2>Completed Jobs</h2>
+            <br>
+            {% if wasCleaned != False %}
+               <div class="alert alert-warning">
+                   Note: Jobs result list was cleaned recently: see JobResultsDump.txt
+               </div>
+            {% endif %}
+                <!-- If the jobs object passed was not empty -->
+                {% if jobs %}
+                    <table class="table" style="word-break:break-all;">
+                        <thead>
+                            <tr>
+                                <th>Job Name</th>
+                                <th>Started</th>
+                                <th>Completed</th>
+                                <th>Job Type</th>
+                                <th>Command</th>
+                                <th>Return Code</th>
+                                <th>Standard Out</th>
+                                <th>Standard Err</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Loop through jobs -->
+                        {% for job in jobs %}
                         {% if job.get('returnCode', None) != None %}
-                            <td>{{ job['returnCode'] }}</td>
-
+                            {% if job.get('returnCode') == 0 %}
+                                <tr class="table-success">
+                            {% else %}
+                                <tr class="table-warning">
+                            {% endif %}
                         {% else %}
-                            <td>N/A</td>
+                            <tr>
                         {% endif %}
-                    <!-- If there was stdout, split lines at the new line, the new lines are tidied up in jobs.py -->
-                    {% if job.get('stdout', None) != None %}
-                        <td>
-                        {% for line in job['stdout'] %}
-                            {{ line }} <br>
-                        {% endfor %}  
-                        </td>
-                    {% else %}
-                        <td>N/A</td>                
-                    {% endif %}
-                    <!-- If there was stderr, split lines at the new line, the new lines are tidied up in jobs.py -->
-                    {% if job.get('stderr', None) != None %}
-                        <td>
-                        {% for line in job['stderr'] %}
-                            {{ line }} <br>
-                        {% endfor %}  
-                        </td>
-                    {% else %}
-                        <td>N/A</td>                
-                    {% endif %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <br>
-        <div class="alert alert-warning">
-            No Completed Jobs
+                                {% set timeCompleted = job['timeCompleted'].time()|string %}
+                                {% set timeStarted = job['timeStarted'].time()|string %}
+                                <td>{{ job['jobId'] }}</td>
+                                <td>{{ timeStarted.split('.')[0] }}<br>{{ job['timeStarted'].date() }}</td>
+                                <td>{{ timeCompleted.split('.')[0] }}<br>{{ job['timeCompleted'].date() }}</td>
+                                <td>{{ job['jobType'] }}</td>
+                                <td>{{ job['command'] }}</td>
+                                <!-- The return code will only be given for remote and shell jobs -->
+                                {% if job.get('returnCode', None) != None %}
+                                    <td>{{ job['returnCode'] }}</td>
+                                {% else %}
+                                    <td>N/A</td>
+                                {% endif %}
+                            <!-- If there was stdout, iterate through the lines (it's made into a list in jobs.py)  -->
+                            {% if job.get('stdout', None) != None %}
+                                <td>
+                                {% for line in job['stdout'] %}
+                                    {{ line }} <br>
+                                {% endfor %}  
+                                </td>
+                            {% else %}
+                                <td>N/A</td>                
+                            {% endif %}
+                            <!-- If there was stderr, iterate through the lines (it's made into a list in jobs.py) -->
+                            {% if job.get('stderr', None) != None %}
+                                <td>
+                                {% for line in job['stderr'] %}
+                                    {{ line }} <br>
+                                {% endfor %}  
+                                </td>
+                            {% else %}
+                                <td>N/A</td>                
+                            {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <br>
+                <button class="btn btn-success" onclick="exportTableToCSV('Jobs Results ' + new Date().toDateString() + '.csv')">Export HTML Table To CSV File</button>
+                <button class="btn btn-success" onclick="exportOutput('Jobs Output ' + new Date().toDateString() + '.txt')">Export Job Output to Text File</button>
+            {% else %}
+                <br>
+                <div class="alert alert-warning">
+                    No Completed Jobs
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-</div>
+    </body>
+</html>
