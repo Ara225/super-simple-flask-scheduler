@@ -45,6 +45,8 @@
                         {% if job.get('returnCode', None) != None %}
                             {% if job.get('returnCode') == 0 %}
                                 <tr class="table-success">
+                            {% elif job.get('returnCode') == 'Successful' %}
+                                <tr class="table-success">
                             {% else %}
                                 <tr class="table-warning">
                             {% endif %}

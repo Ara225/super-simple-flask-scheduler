@@ -77,7 +77,16 @@ def addJob():
                         runJobNow(jobType, request, scheduler, JobResultsList)
             #### Python jobs 
             elif form.validate() and request.form['typeSelector'] == 'Python Job':
-                flash('Error: Not yet implemented')
+                jobType = 'Python'
+                #### One off job at specific time
+                if request.form.get('DateTimeField', '') != '' :
+                    scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+                else:
+                    #### Repeating job at specified intervals
+                    success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
+                    #### Fallback - run job now
+                    if not success:
+                        runJobNow(jobType, request, scheduler, JobResultsList)
             #### Failed validation
             elif not form.validate(): 
                 flash('Error: Required form fields empty or invalid job type selected')
@@ -92,7 +101,6 @@ def getJobs():
     '''
     Get Jobs using one of Flask APScheduler's job APIs (get_jobs)
     :returns: rendered template ViewJobsPageTemplate.html
-    #TODO Make this look nice
     '''
 
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))

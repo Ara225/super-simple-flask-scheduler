@@ -1,9 +1,9 @@
+from sys import path
+path.append('../')
 from flask import Flask
 from flask_testing import TestCase
 import unittest
 from app import *
-from time import sleep
-from datetime import datetime
 from flask_apscheduler.api import get_jobs
 
 class TestGeneralApp(TestCase):

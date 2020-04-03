@@ -22,3 +22,6 @@ Finish tests, refactor jobs code
 
 ### 0.0.8
 Tidy and enhance frontend code
+
+### 0.0.9
+Implement basic Python job functionality, no stdout capturing 

@@ -8,12 +8,14 @@ import subprocess
 from datetime import datetime
 from flask import flash
 from re import match
+import paramiko
 
 def runShellCommandJob(command, jobId, JobResultsList):
     """
     Use subprocess to run a shell command, get the results, create a dict with the result, and append it to JobResultsList 
         :param command: The command to run
         :param jobId: The name of the job
+        :parm JobResultsList: Jobs results list
     """
     # instigate a JobResults object
     currentJobResults = {}
@@ -36,6 +38,29 @@ def runShellCommandJob(command, jobId, JobResultsList):
 
     currentJobResults['timeCompleted'] = datetime.now()
     currentJobResults['jobType'] = 'Shell Job'
+    currentJobResults['command'] = command
+    JobResultsList.append(currentJobResults)
+
+def runPythonCommandJob(command, jobId, JobResultsList):
+    """
+    Use exec to run a python command, get the results, create a dict with the result, and append it to JobResultsList
+    TODO: This is very limited and unhelpful 
+        :param command: The command to run
+        :param jobId: The name of the job
+        :parm JobResultsList: Jobs results list
+    """
+    currentJobResults = {}
+    currentJobResults['jobId'] = jobId
+    currentJobResults['timeStarted'] = datetime.now()
+    try:
+        currentJobResults['stdout'] = exec(command)
+        currentJobResults['returnCode'] = 'Successful'
+    except Exception as e:
+        currentJobResults['stderr'] = str(e).replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
+        currentJobResults['returnCode'] = 'Unspecified'
+
+    currentJobResults['timeCompleted'] = datetime.now()
+    currentJobResults['jobType'] = 'Python Job'
     currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
@@ -111,12 +136,21 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList):
                 flash('Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty')
                 return False
             else:
+                # This ensures that the start and end date fields are valid and are not in the past
                 schedulerEnd = request.form.get('EndDateTimeField', None)
                 schedulerStart = request.form.get('StartDateTimeField', None)
                 if schedulerStart == '':
                     schedulerStart = None
+                elif schedulerStart != None: 
+                    if not compareDate(datetime.fromisoformat(schedulerStart)):
+                        flash('Error: Unable to schedule task, start date selected is in the past')
+                        return False
                 if schedulerEnd == '':
-                    schedulerEnd = None  
+                    schedulerEnd = None
+                elif schedulerEnd != None:
+                    if not compareDate(datetime.fromisoformat(schedulerEnd)):
+                        flash('Error: Unable to schedule task, end date selected is in the past')
+                        return False 
                 # Schedule a job to run at the requested interval, args are passed to the function not command
                 scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
                                  args=(request.form['command'], request.form['jobId'], JobResultsList), 

@@ -8,20 +8,25 @@ Mainly a personal keep-busy sort of project. Loosely designed to fill a gap in t
 complete simple web schedulers (that I could find). It's not really production quality code though so. 
 
 ## Files
-app.py - App entry point python3 ./app.py to run with development web server 
+app.py - App entry point. python3 ./app.py to run with development web server 
 forms.py - forms classes and functions
 jobs.py - Jobs classes and functions
+
+## Folders
 templates - Jinja2 templates for display
 static - CSS files and some extra JS functions
+test - test cases files
 
 ## Tests Files
-test_schedule_shell_jobs.py - Test scheduling shell jobs
-test_general_app.py - Other tests
+.\test\test_schedule_shell_jobs.py - Test scheduling shell jobs
+.\test\test_schedule_python_jobs.py - Test scheduling python jobs
+.\test\test_general_app.py - Other tests
 
 ## TODO
 * Implement optional persistent job storage 
-* Implement Python job functionality
+* Improve Python job functionality
 * Implement basic remote job functionality
 * Implement authentication 
 * Eliminate use of global vars
 * Improve the cleanup job
+* Consolidate Python and shell jobs test files

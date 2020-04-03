@@ -2,6 +2,8 @@
 Contains test cases specifically related to job scheduling Should test every flashed error message
 except the ones displayed on an exception as I haven't figured out how to trigger one yet
 '''
+from sys import path
+path.append('../')
 from flask import Flask
 from flask_testing import TestCase
 import unittest
@@ -9,6 +11,7 @@ from app import *
 from time import sleep
 from datetime import datetime
 from flask_apscheduler.api import get_jobs
+
 
 class TestScheduleJobs(TestCase):
 
@@ -224,7 +227,7 @@ class TestScheduleJobs(TestCase):
             data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Days': 1, 'StartDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Past start date selected, please try again', response.data)
+        self.assertIn(b'Error: Unable to schedule task, start date selected is in the past', response.data)
 
     def test_schedule_repeating_job_with_past_end_time(self):
         self.client.get("/addjob")
@@ -233,8 +236,8 @@ class TestScheduleJobs(TestCase):
             data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 2, 'EndDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Past end date selected, please try again', response.data)
+        self.assertIn(b'Error: Unable to schedule task, end date selected is in the past', response.data)
 
 if __name__ == '__main__':
     jobType = 'Shell Job'
-    unittest.main()
+    exec(unittest.main())
