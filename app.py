@@ -21,6 +21,7 @@ from time import sleep
 import json
 from jobs import *
 from forms import *
+from SSHclient import Client
 import os
 
 app = None
@@ -64,32 +65,39 @@ def addJob():
         if request.method == 'POST':
             global JobResultsList
             #### Shell jobs 
-            if form.validate() and request.form['typeSelector'] == 'Shell Job':
-                jobType = 'Shell'
-                #### One off job at specific time
-                if request.form.get('DateTimeField', '') != '' :
-                    scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+            if form.validate() and request.form.get('targetHost', '') == '':
+                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '':
+                    flash('Error: Target host not supplied')
                 else:
-                    #### Repeating job at specified intervals
-                    success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
-                    #### Fallback - run job now
-                    if not success:
-                        runJobNow(jobType, request, scheduler, JobResultsList)
-            #### Python jobs 
-            elif form.validate() and request.form['typeSelector'] == 'Python Job':
-                jobType = 'Python'
-                #### One off job at specific time
-                if request.form.get('DateTimeField', '') != '' :
-                    scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+                    jobType = 'Shell'
+                    #### One off job at specific time
+                    if request.form.get('DateTimeField', '') != '' :
+                        scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+                    else:
+                        #### Repeating job at specified intervals
+                        success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
+                        #### Fallback - run job now
+                        if not success:
+                            runJobNow(jobType, request, scheduler, JobResultsList)
+            elif form.validate() and request.form.get('targetHost', '') != '':
+                if request.form.get('targetHostUser', '') == '':
+                    flash('Error: Target host user not provided')
+                elif request.form.get('targetHostPassword', '') == '' or request.form.get('targetHostSSHKey', '') == '' or request.form.get('shouldUseExistingSSHKey', '') == '':
+                    flash('Error: Neither password or SSH key provided')
                 else:
-                    #### Repeating job at specified intervals
-                    success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
-                    #### Fallback - run job now
-                    if not success:
-                        runJobNow(jobType, request, scheduler, JobResultsList)
+                    jobType = 'Remote'
+                    #### One off job at specific time
+                    if request.form.get('DateTimeField', '') != '' :
+                        scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+                    else:
+                        #### Repeating job at specified intervals
+                        success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
+                        #### Fallback - run job now
+                        if not success:
+                            runJobNow(jobType, request, scheduler, JobResultsList)
             #### Failed validation
             elif not form.validate(): 
-                flash('Error: Required form fields empty or invalid job type selected')
+                flash('Error: Required form fields empty')
             #### Other errors
             else:
                 flash('Error: Unknown issue occurred')

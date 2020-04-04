@@ -19,10 +19,14 @@ class AddJobForm(Form):
     # Required fields
     jobId = StringField('jobId', validators=[validators.DataRequired()])
     command = StringField('command', validators=[validators.DataRequired()])
-    typeSelector = SelectField('typeSelector', 
-                   validators=[validators.none_of([('-- Select Job Type --', '-- Select Job Type --')])], 
-                   choices=[('-- Select Job Type --', '-- Select Job Type --'), ('Python Job', 'Python Job'), ('Shell Job', 'Shell Job')]
-                   )
+
+    # Target Host 
+    targetHost = StringField('targetHost', validators=[validators.optional()])
+    targetHostUser = StringField('targetHostUser', validators=[validators.optional()])
+    targetHostPassword = StringField('targetHostPassword', validators=[validators.optional()])
+    targetHostPassphrase = StringField('targetHostPassphrase', validators=[validators.optional()])
+    targetHostSSHKey = StringField('targetHostSSHKey', validators=[validators.optional()])
+
     # Date/time scheduler options
     dateTimeField = StringField('DateTimeField', validators=[validators.optional(strip_whitespace=True)])
 

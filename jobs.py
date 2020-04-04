@@ -8,7 +8,6 @@ import subprocess
 from datetime import datetime
 from flask import flash
 from re import match
-import paramiko
 
 def runShellCommandJob(command, jobId, JobResultsList):
     """
@@ -41,26 +40,34 @@ def runShellCommandJob(command, jobId, JobResultsList):
     currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
-def runPythonCommandJob(command, jobId, JobResultsList):
+def runRemoteCommandJob(command, jobId, JobResultsList):
     """
-    Use exec to run a python command, get the results, create a dict with the result, and append it to JobResultsList
-    TODO: This is very limited and unhelpful 
+    Use subprocess to run a shell command, get the results, create a dict with the result, and append it to JobResultsList 
         :param command: The command to run
         :param jobId: The name of the job
         :parm JobResultsList: Jobs results list
     """
+    # instigate a JobResults object
     currentJobResults = {}
     currentJobResults['jobId'] = jobId
     currentJobResults['timeStarted'] = datetime.now()
     try:
-        currentJobResults['stdout'] = exec(command)
-        currentJobResults['returnCode'] = 'Successful'
+        # Run the command and collect the output as plain text, tidy up the line endings since they are fiddly
+        currentJobResults['stdout'] = subprocess.check_output(command).decode('utf-8').replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
+        # Subprocess only allows this to succeed if the return code is 0
+        currentJobResults['returnCode'] = 0
+    # Process subprocess.CalledProcessError
+    except subprocess.CalledProcessError as e:
+        currentJobResults['stdout'] = e.stdout().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
+        currentJobResults['stderr'] = e.stderr().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
+        currentJobResults['returnCode'] = e.returncode
+    # Other exceptions, we don't get return codes here
     except Exception as e:
         currentJobResults['stderr'] = str(e).replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
         currentJobResults['returnCode'] = 'Unspecified'
 
     currentJobResults['timeCompleted'] = datetime.now()
-    currentJobResults['jobType'] = 'Python Job'
+    currentJobResults['jobType'] = 'Shell Job'
     currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
