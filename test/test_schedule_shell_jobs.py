@@ -3,7 +3,7 @@ Contains test cases specifically related to job scheduling Should test every fla
 except the ones displayed on an exception as I haven't figured out how to trigger one yet
 '''
 from sys import path
-path.append('../')
+path.append('..')
 from flask import Flask
 from flask_testing import TestCase
 import unittest
@@ -24,7 +24,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'typeSelector': jobType},
+            data={'jobId': 'TestJob', 'command': 'echo Hello World'},
             follow_redirects=True
         )
         sleep(2)
@@ -38,7 +38,7 @@ class TestScheduleJobs(TestCase):
             data={},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
+        self.assertIn(b'Error: Required form fields empty', response.data)
 
     def test_schedule_with_only_jobId_completed(self):
         self.client.get("/addjob")
@@ -47,7 +47,7 @@ class TestScheduleJobs(TestCase):
             data={'jobId': 'TestJob'},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
+        self.assertIn(b'Error: Required form fields empty', response.data)
     
     def test_schedule_with_only_command_completed(self):
         self.client.get("/addjob")
@@ -56,7 +56,7 @@ class TestScheduleJobs(TestCase):
             data={'command': 'echo Hello World'},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
+        self.assertIn(b'Error: Required form fields empty', response.data)
 
     def test_schedule_with_only_typeSelector_completed(self):
         self.client.get("/addjob")
@@ -65,16 +65,7 @@ class TestScheduleJobs(TestCase):
             data={'typeSelector': jobType},
             follow_redirects=True
         )
-        self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
-
-    def test_schedule_with_invalid_typeSelector_input(self):
-        self.client.get("/addjob")
-        response = self.client.post(
-            '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'typeSelector': 'NotAValidDate'},
-            follow_redirects=True
-        )
-        self.assertIn(b'Error: Required form fields empty or invalid job type selected', response.data)
+        self.assertIn(b'Error: Required form fields empty', response.data)
 
     ### Tests for scheduling one off jobs
 
@@ -82,7 +73,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType,  'DateTimeField': '2020-03-30T23:44'},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"',  'DateTimeField': '2020-03-30T23:44'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Past date selected, please try again', response.data)
@@ -91,7 +82,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'DateTimeField': str(datetime.now().year + 1) + '-03-30T23:44'},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'DateTimeField': str(datetime.now().year + 1) + '-03-30T23:44'},
             follow_redirects=True
         )
         self.assertIn(bytes('Job scheduled for ' + str(datetime.now().year + 1) + '-03-30 23:44', 'utf-8'), response.data)
@@ -100,7 +91,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType,  'DateTimeField': 'NotAValidDAte'},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"',  'DateTimeField': 'NotAValidDAte'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Invalid date provided, please try again', response.data)
@@ -111,7 +102,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Seconds': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -120,7 +111,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Minutes': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Minutes': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -129,7 +120,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Hours': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Hours': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -138,7 +129,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Days': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Days': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -147,7 +138,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Weeks': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Weeks': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -156,7 +147,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Weeks': 5, 'Days': 5},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Weeks': 5, 'Days': 5},
             follow_redirects=True
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
@@ -165,7 +156,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 67},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Seconds': 67},
             follow_redirects=True
         )
         self.assertIn(b'Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty', response.data)
@@ -174,7 +165,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Days': 'NotANumber'},
+            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Days': 'NotANumber'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Invalid input - non-number chars in interval field', response.data)
@@ -185,7 +176,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Days': 1, 'StartDateTimeField':  str(datetime.now().year + 1) + '-03-30T23:44'},
+            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'Days': 1, 'StartDateTimeField':  str(datetime.now().year + 1) + '-03-30T23:44'},
             follow_redirects=True
         )
         jobs = json.loads(get_jobs().get_data().decode('utf-8'))
@@ -197,7 +188,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 2, 'EndDateTimeField':  str(datetime.now().year + 1) + '-03-30T23:44'},
+            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'Seconds': 2, 'EndDateTimeField':  str(datetime.now().year + 1) + '-03-30T23:44'},
             follow_redirects=True
         )
         jobs = json.loads(get_jobs().get_data().decode('utf-8'))
@@ -209,7 +200,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 2, 
+            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'Seconds': 2, 
             'StartDateTimeField':  str(datetime.now().year + 1) + '-03-30T23:44', 'EndDateTimeField':  str(datetime.now().year + 2) + '-03-30T23:44'},
             follow_redirects=True
         )
@@ -224,7 +215,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Days': 1, 'StartDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
+            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'Days': 1, 'StartDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Unable to schedule task, start date selected is in the past', response.data)
@@ -233,7 +224,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'typeSelector': jobType, 'Seconds': 2, 'EndDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
+            data={'jobId': 'StartTimeTestJob', 'command': 'echo "Hello World"', 'Seconds': 2, 'EndDateTimeField':  str(datetime.now().year + -1) + '-03-30T23:44'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Unable to schedule task, end date selected is in the past', response.data)

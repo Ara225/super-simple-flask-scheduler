@@ -38,11 +38,12 @@ function downloadFile(fileContents, filename) {
 /**
  * Generate CSV file with fields separated by commas and rows with \n Not very good
  * @param {String} filename File name
+ * @param {String} parentID Name of parent ID
  */
-function exportTableToCSV(filename) {
+function exportTableToCSV(filename, parentID) {
     var csv = [];
     // Get table rows
-    var rows = document.querySelectorAll("table tr");
+    var rows = document.getElementById(parentID).querySelectorAll("table tr");
     // Iterate through the rows
     for (var row = 0; row < rows.length; row++) {
         // Get columns 
@@ -62,10 +63,11 @@ function exportTableToCSV(filename) {
 /**
  * Export the output of the commands, including stderr, return code, and stdout
  * @param {String} filename 
+ * @param {String} parentID Name of parent ID
  */
-function exportOutput(filename) {
+function exportOutput(filename, parentID) {
     var output = [];
-    var rows = document.querySelectorAll("table tr");
+    var rows = document.getElementById(parentID).querySelectorAll("table tr");
     for (var i = 1; i < rows.length; i++) {
         var row = [], cols = rows[i].querySelectorAll("td, th");
         row.push('Job Name: ' + cols[0].innerText)

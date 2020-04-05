@@ -21,6 +21,7 @@ from time import sleep
 import json
 from jobs import *
 from forms import *
+from SSHclient import Client
 import os
 
 app = None
@@ -46,7 +47,8 @@ def index():
     Main page 
     :returns: rendered template MainPageTemplate.html
     '''   
-    return render_template('MainPageTemplate.html')
+    jobs = json.loads(get_jobs().get_data().decode('utf-8'))
+    return render_template('MainPageTemplate.html', JobResultsList=JobResultsList, PendingJobs=jobs, shouldShowHeader=False)
 
 def addJob():
     '''
@@ -64,32 +66,46 @@ def addJob():
         if request.method == 'POST':
             global JobResultsList
             #### Shell jobs 
-            if form.validate() and request.form['typeSelector'] == 'Shell Job':
-                jobType = 'Shell'
-                #### One off job at specific time
-                if request.form.get('DateTimeField', '') != '' :
-                    scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
+            if form.validate() and request.form.get('targetHost', '') == '':
+                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '':
+                    flash('Error: Target host not supplied')
                 else:
-                    #### Repeating job at specified intervals
-                    success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
-                    #### Fallback - run job now
-                    if not success:
-                        runJobNow(jobType, request, scheduler, JobResultsList)
-            #### Python jobs 
-            elif form.validate() and request.form['typeSelector'] == 'Python Job':
-                jobType = 'Python'
-                #### One off job at specific time
-                if request.form.get('DateTimeField', '') != '' :
-                    scheduleOneOffJob(jobType, request, scheduler, JobResultsList)
-                else:
-                    #### Repeating job at specified intervals
-                    success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList)
-                    #### Fallback - run job now
-                    if not success:
-                        runJobNow(jobType, request, scheduler, JobResultsList)
+                    client = None
+                    jobType = 'Shell'
+                    #### One off job at specific time
+                    if request.form.get('DateTimeField', '') != '' :
+                        scheduleOneOffJob(jobType, request, scheduler, JobResultsList, client)
+                    else:
+                        #### Repeating job at specified intervals
+                        success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client)
+                        #### Fallback - run job now
+                        if not success:
+                            runJobNow(jobType, request, scheduler, JobResultsList, client)
+            # If the target host field is completed
+            elif form.validate() and request.form.get('targetHost', '') != '':
+                # Target host user
+                if request.form.get('targetHostUser', '') == '':
+                    flash('Error: Target host user not provided')
+                # If none of the password/credential fields is completed
+                elif request.form.get('targetHostPassword', '') == '' and request.form.get('targetHostSSHKey', '') == '' and request.form.get('shouldUseExistingSSHKey', '') == '':
+                    flash('Error: Neither password or SSH key provided')
+                else: 
+                    # Instigate the client object to do SSH
+                    client = Client(request)
+                    if client.test_connection() != False:
+                        jobType = 'Remote'
+                        #### One off job at specific time
+                        if request.form.get('DateTimeField', '') != '' :
+                            scheduleOneOffJob(jobType, request, scheduler, JobResultsList, client)
+                        else:
+                            #### Repeating job at specified intervals
+                            success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client)
+                            #### Fallback - run job now
+                            if not success:
+                                runJobNow(jobType, request, scheduler, JobResultsList, client)
             #### Failed validation
             elif not form.validate(): 
-                flash('Error: Required form fields empty or invalid job type selected')
+                flash('Error: Required form fields empty')
             #### Other errors
             else:
                 flash('Error: Unknown issue occurred')
@@ -105,14 +121,14 @@ def getJobs():
 
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))
 
-    return render_template('ViewJobsPageTemplate.html', jobs=jobs) 
+    return render_template('ViewJobsPageTemplate.html', jobs=jobs, shouldShowHeader=True) 
 
 def getJobsResults():
     '''
     Render job results nicely
     :returns: rendered template JobsResultPageTemplate.html
     '''
-    return render_template('JobsResultPageTemplate.html', jobs=JobResultsList, wasCleaned=wasCleaned) 
+    return render_template('JobsResultPageTemplate.html', jobs=JobResultsList, wasCleaned=wasCleaned, shouldShowHeader=True) 
 
 def CleanupJob():
     '''

@@ -1,11 +1,37 @@
 <title>Flask Job Scheduler</title>
 <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+<script type="text/javascript" src="static/extra-scripts.js?ver=19"></script>  
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="navbar-nav">
+  <div class="navbar-nav">
       <a class="nav-item nav-link" href="/">Home</a>
       <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
-      <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
-      <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
-    </div>
+      <a class="nav-item nav-link" href="/getjobs">View Jobs With Pending Tasks</a>
+      <a class="nav-item nav-link" href="/getjobsresults">View Completed Tasks</a>
+  </div>
 </nav>
+<br>
+<br>
+<div class="col-12 text-center" style="display: inline-block;">
+    <div class="col-2 text-center rounded table-success" style="display: inline-block;padding: .75rem;">{{ PendingJobs|length }} Job(s) with tasks still to run</div>
+    <div class="col-2 text-center rounded table-success" style="display: inline-block;padding: .75rem;">{{ JobResultsList|length }} Completed task(s)</div>
+    {% set remote = namespace(value=0) %}
+    {% set shell = namespace(value=0) %}
+    {% if JobResultsList %}
+        {% for job in JobResultsList %}
+            {% if job['jobType'] == 'Remote Job' %}
+                {% set remote.value = remote.value+1 %}
+            {% elif job['jobType'] == 'Shell Job' %}
+                {% set shell.value = shell.value+1 %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <div class="col-2 text-center rounded table-success" style="display: inline-block;padding: .75rem;">{{ remote.value }} Completed remote task(s) </div>
+    <div class="col-2 text-center rounded table-success" style="display: inline-block;padding: .75rem;">{{ shell.value }} Completed shell task(s)</div>
+</div>
+<br>
+<br>
+{% set jobs = PendingJobs %}
+{% include 'ViewJobsPageTemplate.html' %}
+{% set jobs = JobResultsList %}
+{% include 'JobsResultPageTemplate.html' %}
