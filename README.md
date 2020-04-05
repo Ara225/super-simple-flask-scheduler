@@ -11,6 +11,7 @@ complete simple web schedulers (that I could find). It's not really production q
 app.py - App entry point. python3 ./app.py to run with development web server 
 forms.py - forms classes and functions
 jobs.py - Jobs classes and functions
+SSHclient.py - Contains the Client class which does the SSH connection work
 
 ## Folders
 templates - Jinja2 templates for display
@@ -24,9 +25,7 @@ test - test cases files
 
 ## TODO
 * Implement optional persistent job storage 
-* Improve Python job functionality
-* Implement basic remote job functionality
 * Implement authentication 
 * Eliminate use of global vars
 * Improve the cleanup job
-* Consolidate Python and shell jobs test files
+* Write tests

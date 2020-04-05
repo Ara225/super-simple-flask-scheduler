@@ -38,11 +38,12 @@ function downloadFile(fileContents, filename) {
 /**
  * Generate CSV file with fields separated by commas and rows with \n Not very good
  * @param {String} filename File name
+ * @param {String} parentID Name of parent ID
  */
-function exportTableToCSV(filename) {
+function exportTableToCSV(filename, parentID) {
     var csv = [];
     // Get table rows
-    var rows = document.querySelectorAll("table tr");
+    var rows = document.getElementById(parentID).querySelectorAll("table tr");
     // Iterate through the rows
     for (var row = 0; row < rows.length; row++) {
         // Get columns 
@@ -62,10 +63,11 @@ function exportTableToCSV(filename) {
 /**
  * Export the output of the commands, including stderr, return code, and stdout
  * @param {String} filename 
+ * @param {String} parentID Name of parent ID
  */
-function exportOutput(filename) {
+function exportOutput(filename, parentID) {
     var output = [];
-    var rows = document.querySelectorAll("table tr");
+    var rows = document.getElementById(parentID).querySelectorAll("table tr");
     for (var i = 1; i < rows.length; i++) {
         var row = [], cols = rows[i].querySelectorAll("td, th");
         row.push('Job Name: ' + cols[0].innerText)
@@ -77,63 +79,4 @@ function exportOutput(filename) {
         output.push(row.join("\r\n"));               
     }
     downloadFile(output.join("\r\n"), filename);
-}
-/**
- * Confirm all fields contained within the div supplied as elementToCheck are completed
- * @param {Number} groupNumber The number of the group
- * @param {String} elementToCheck The ID of a div that contains the text and textarea field
- */
-function confirmAllFieldsCompleted(groupNumber, elementToCheck) {
-    for (var i = 0; i<document.getElementById(elementToCheck).childNodes.length; i++) {
-        if (document.getElementById('Group'+groupNumber).childNodes[i].type == 'text' || document.getElementById('Group'+groupNumber).childNodes[i].type == 'textarea') {
-            if (document.getElementById('Group'+groupNumber).childNodes[i].value == '') {
-                alert('All fields are required');
-                return false;
-            }
-        }
-    }
-    var nextGroup = groupNumber+1;
-    document.getElementById('Group' + groupNumber).hidden = true; 
-    document.getElementById('Group' + nextGroup).hidden = false;
-}
-
-/**
- * Some client side validation 
- * TODO This is BAD think of something better
- * @param {Number} groupNumber The number of the group
- * @param {String} classNameOfDependantElements A class name shared between the dependant elements - One of these most be filled in
- * @param {Array<String>} IDsOfRequiredFields A list of the field ID that must be filled in
- */
-function confirmFieldsCompleted(groupNumber, classNameOfDependantElements, IDsOfRequiredFields) {
-    // Confirm that the required fields are all completed
-    var countCompletedRequiredFields = 0;
-    for (var i = 0; i<IDsOfRequiredFields.length; i++) {
-        if (document.getElementById(IDsOfRequiredFields[i]).value == '') {
-            countCompletedRequiredFields++
-        }
-    }
-    // Confirm that at least one of the Dependent fields is completed
-    var countCompletedDependentFields = 0;
-    var DependantElements = document.getElementsByClassName(classNameOfDependantElements)
-    for (var i2 = 0; i2<DependantElements.length; i2++) {
-        if (DependantElements[i2].value != '' && !DependantElements[i2].type.includes('checkbox')) {
-            countCompletedDependentFields++
-        }
-        else if (DependantElements[i2].checked == true) {
-            countCompletedDependentFields++
-        }
-    }
-    if (countCompletedRequiredFields != IDsOfRequiredFields.length && countCompletedRequiredFields != 0) {
-       alert('Required fields blank');
-       return false;
-    }
-    else if (countCompletedDependentFields != 1) {
-        alert('Required fields blank');
-        return false;
-    }
-    countCompletedDependentFields != 1
-    var nextGroup = groupNumber+1;
-    document.getElementById('Group' + groupNumber).hidden = true; 
-    document.getElementById('formSubmit').disabled = false;
-    document.getElementById('Group' + nextGroup).hidden = false;
 }

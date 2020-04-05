@@ -32,3 +32,6 @@ Decided to limit to shell jobs (local or remote). Python jobs were a bit more co
 
 ### 0.1.2
 Bug fixes and minor improvements
+
+### 0.1.3
+Significant frontend changes

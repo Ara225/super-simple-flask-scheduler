@@ -1,23 +1,24 @@
+{% if shouldShowHeader %}
 <!DOCTYPE html>
 <html>
     <head>
         <title>Flask Job Scheduler</title>
-        <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
-        <link rel="script" href="static/extra-scripts.js">
         <script type="text/javascript" src="static/extra-scripts.js?ver=19"></script>  
     </head>
     <body>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link" href="/">Home</a>
-                <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
-                <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
-                <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
-            </div>
-        </nav>
+            <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="navbar-nav">
+                    <a class="nav-item nav-link" href="/">Home</a>
+                    <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+                    <a class="nav-item nav-link" href="/getjobs">View Jobs With Pending Tasks</a>
+                    <a class="nav-item nav-link" href="/getjobsresults">View Completed Tasks</a>
+                </div>
+            </nav>
+{% endif %}
         <div class="container col-12">
-            <h2>Completed Jobs</h2>
+            <h2>Completed Tasks</h2>
             <br>
             {% if wasCleaned != False %}
                <div class="alert alert-warning">
@@ -26,7 +27,7 @@
             {% endif %}
                 <!-- If the jobs object passed was not empty -->
                 {% if jobs %}
-                    <table class="table" style="word-break:break-all;">
+                    <table class="table" id="JobResultsTable" style="word-break:break-all;">
                         <thead>
                             <tr>
                                 <th>Job Name</th>
@@ -91,8 +92,8 @@
                     </tbody>
                 </table>
                 <br>
-                <button class="btn btn-success" onclick="exportTableToCSV('Jobs Results ' + new Date().toDateString() + '.csv')">Export HTML Table To CSV File</button>
-                <button class="btn btn-success" onclick="exportOutput('Jobs Output ' + new Date().toDateString() + '.txt')">Export Job Output to Text File</button>
+                <button class="btn btn-success" onclick="exportTableToCSV('Jobs Results ' + new Date().toDateString() + '.csv', 'JobResultsTable')">Export Job Results Table To CSV File</button>
+                <button class="btn btn-success" onclick="exportOutput('Jobs Output ' + new Date().toDateString() + '.txt', 'JobResultsTable')">Export Job Output to Text File</button>
             {% else %}
                 <br>
                 <div class="alert alert-warning">
@@ -100,5 +101,7 @@
                 </div>
             {% endif %}
         </div>
+{% if shouldShowHeader %}
     </body>
 </html>
+{% endif %}

@@ -21,14 +21,12 @@ class Client:
         if self.shouldUseExistingSSHKey == True or self.targetHostSSHKey == '':
             self.pkey = None
         else:
-            f = open(self.targetHostSSHKey, 'r')
-            s = f.read()
-            keyfile = StringIO(s)
+            keyFile = open(self.targetHostSSHKey, 'r')
             if self.targetHostPassphrase != '':
-                self.pkey = RSAKey.from_private_key(self.targetHostSSHKey, password=self.targetHostPassphrase)
+                self.pkey = RSAKey.from_private_key(keyFile, password=self.targetHostPassphrase)
             else:
-                self.pkey = RSAKey.from_private_key(self.targetHostSSHKey)
-            f.close()
+                self.pkey = RSAKey.from_private_key(keyFile)
+            keyFile.close()
 
     def connect(self):
         """Connect to remote."""

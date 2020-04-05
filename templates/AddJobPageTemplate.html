@@ -1,101 +1,112 @@
 <!DOCTYPE html>
-<head>
-    <title>Flask Job Scheduler</title>
-</head>
-
-<body>
-    <!-- Bootstrap CSS base styles-->
-    <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
-    <!-- A extra style because bootstrap doesn't have anything quite right for the interval fields -->
-    <link rel="stylesheet" media="screen" href="static/extra-styles.css">
-    <script type="text/javascript" src="static/extra-scripts.js?ver=18"></script>  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="navbar-nav">
-            <a class="nav-item nav-link" href="/">Home</a>
-            <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
-            <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
-            <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
-        </div>
-    </nav>
-    <div class="container-lg col-8">
-        <!-- Alert area -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <br>
-                {% for message in messages %}
-                    {% if "Error" not in message[1]: %}
-                        <div class="alert alert-info">
-                            <strong>Success! </strong> {{ message[1] }}
-                        </div>
-                    {% endif %}
-                    {% if "Error" in message[1]: %}
-                        <div class="alert alert-warning">
-                            {{ message[1] }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                <br>
-            {% endif %}
-        {% endwith %}
-        <h2>Job Scheduler</h2>
-        <br>
-        <form action="" method="post" role="form">
-            <div class="form-group" id="Group1">
-                <h4>Details</h4>
-                <!-- Field for name or ID of the new job  -->
-                <input type="text" class="form-control form-group" id="jobId" name="jobId" placeholder="Name for the New Job (required)">
-                <textarea class="form-control form-group" id="command" name="command" placeholder="Shell Command(s) to Run (required)"></textarea>
-                <button type="button" onclick="confirmAllFieldsCompleted(1, 'Group1')" class="btn btn-success">Next</button>
-                <br>
+<html>
+    <head>
+        <title>Flask Job Scheduler</title>
+    </head>
+    
+    <body>
+        <!-- Bootstrap CSS base styles-->
+        <link rel="stylesheet" media="screen" href="static/bootstrap.min.css">
+        <!-- A extra style because bootstrap doesn't have anything quite right for the interval fields -->
+        <link rel="stylesheet" media="screen" href="static/extra-styles.css">
+        <script type="text/javascript" src="static/extra-scripts.js?ver=2"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="/">Home</a>
+                <a class="nav-item nav-link" href="/addjob">Schedule Job</a>
+                <a class="nav-item nav-link" href="/getjobs">View Pending Jobs</a>
+                <a class="nav-item nav-link" href="/getjobsresults">View Completed Jobs</a>
             </div>
-            <div class="form-group" id="Group2" hidden>
-                <h4>SSH Options (Leave blank to run on localhost)</h4>
-                <input type="text" class="form-control form-group" id="targetHost" name="targetHost" placeholder="Target Host">
-                <input type="text" class="form-control form-group" id="targetHostUser" name="targetHostUser" placeholder="Target Host User">
-                <input type="password" class="form-control form-group needed" id="targetHostPassword" name="targetHostPassword" placeholder="Target Host Password">
-                <h5>SSH Key Options</h5>
-                <input type="password" class="form-control form-group" id="targetHostPassphrase" name="targetHostPassphrase" placeholder="Target Host SSH Key Passphrase">
-                <input type="text" class="form-control form-group needed" id="targetHostSSHKey" name="targetHostSSHKey" placeholder="Path To Target Host SSH Key File">
-                <label for="shouldUseExistingSSHKey">Look for existing SSH key</label>
-                <input type="checkbox" class="form-group needed" id="shouldUseExistingSSHKey" name="shouldUseExistingSSHKey">
-                <br>
-                <button type="button" onclick="confirmFieldsCompleted(2, 'needed', ['targetHost', 'targetHostUser'])" class="btn btn-success">Next</button>
-            </div>
-            <div class="form-group" id="Group3" hidden>
-                <!-- Setup for one-off jobs, APScheduler trigger type for these is date -->
-                <h4>Scheduling Options</h4>
-                <div class="form-group">
-                    <h5>Run Once</h5>
-                    <input type="datetime-local" class="form-control" id="DateTimeField" name="DateTimeField">
+        </nav>
+        <div class="container col-10">
+            <!-- Alert area -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <br>
+                    {% for message in messages %}
+                        {% if "Error" not in message[1]: %}
+                            <div class="alert alert-info">
+                                <strong>Success! </strong> {{ message[1] }}
+                            </div>
+                        {% endif %}
+                        {% if "Error" in message[1]: %}
+                            <div class="alert alert-warning">
+                                {{ message[1] }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <br>
+                {% endif %}
+            {% endwith %}
+            <h2>Job Scheduler</h2>
+            <br>
+            <form action="" method="post" role="form">
+                <div class="form-group" id="Group1">
+                    <input type="text" class="form-control form-group" id="jobId" name="jobId"
+                        placeholder="Name for the New Job (required)">
+                    <textarea class="form-control form-group" id="command" name="command"
+                        placeholder="Shell Command(s) to Run (required)"></textarea>
                 </div>
-                <!-- Setup for repeating jobs, APScheduler trigger type for these is interval -->
-                <div class="form-group">
-                    <h5>Repeat</h5>
-                    <input class="form-control intervalField" id="Seconds" name="Seconds" placeholder="Seconds" pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Seconds Amount">
-                    <input class="form-control intervalField" id="Minutes" name="Minutes" placeholder="Minutes" pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Minutes Amount">
-                    <input class="form-control intervalField" id="Hours" name="Hours" placeholder="Hours" pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Hours Amount">
-                    <input class="form-control intervalField" id="Days" name="Days" placeholder="Days" pattern='[0-9]*' title="Valid Days Amount">
-                    <input class="form-control intervalField" id="Weeks" name="Weeks" placeholder="Weeks" pattern='[0-9]*' title="Valid Weeks Amount">
-                </div>
-                <!-- Start Date - when scheduler should start -->
-                <div class="form-group" style="display: inline-block;">
-                    Start Date (optional) &nbsp;
-                    <input type="datetime-local" class="form-control" id="startDateTimeField" name="startDateTimeField">
-                </div>
-                <!-- End Date - when scheduler should stop -->
-                <div class="form-group" style="display: inline-block;">
-                    End Date (optional) &nbsp; &nbsp;
-                    <input type="datetime-local" class="form-control" id="endDateTimeField" name="endDateTimeField">
-                </div>
-                <!-- Submit button -->
-                <div class="form-group">
-                    <button type="submit" class="btn btn-success" id="formSubmit" disabled>Submit</button>
+                <div class="form-group col-5" id="Group2" style="display: inline-block;">
+                    <br>
+                    <h4>SSH Options (Leave blank to run on localhost)</h4>
+                    <input type="text" class="form-control form-group" id="targetHost" name="targetHost"
+                        placeholder="Target Host">
+                    <input type="text" class="form-control form-group" id="targetHostUser" name="targetHostUser"
+                        placeholder="Target Host User">
+                    <input type="password" class="form-control form-group needed" id="targetHostPassword"
+                        name="targetHostPassword" placeholder="Target Host Password">
+                    <input type="password" class="form-control form-group" id="targetHostPassphrase"
+                        name="targetHostPassphrase" placeholder="Target Host SSH Key Passphrase">
+                    <input type="text" class="form-control form-group needed" id="targetHostSSHKey" name="targetHostSSHKey"
+                        placeholder="Path To Target Host SSH Key File">
+                    <label for="shouldUseExistingSSHKey">Use system SSH keys instead</label>
+                    <input type="checkbox" class="form-group needed" id="shouldUseExistingSSHKey"
+                        name="shouldUseExistingSSHKey">
                     <br>
                 </div>
-            </div>
-        </form>
-    </div>
-</body>
+                <div class="form-group col-1" style="display: inline-block;">
+                </div>
+                <div class="form-group col-5" id="Group3" style="display: inline-block;">
+                    <!-- Setup for one-off jobs, APScheduler trigger type for these is date -->
+                    <h4>Scheduling (leave blank to run now)</h4>
+                    <br>
+                    <!-- Setup for repeating jobs, APScheduler trigger type for these is interval -->
+                    <div class="form-group">
+                        <h5>Run Once</h5>
+                        <input type="datetime-local" class="form-control" id="DateTimeField" name="DateTimeField">
+                        <br>
+                        <h5>Repeat</h5>
+                        <input class="form-control intervalField" id="Seconds" name="Seconds" placeholder="Seconds"
+                            pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Seconds Amount">
+                        <input class="form-control intervalField" id="Minutes" name="Minutes" placeholder="Minutes"
+                            pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Minutes Amount">
+                        <input class="form-control intervalField" id="Hours" name="Hours" placeholder="Hours"
+                            pattern='[0-5]{0,1}[0-9]{0,1}' title="Valid Hours Amount">
+                        <input class="form-control intervalField" id="Days" name="Days" placeholder="Days" pattern='[0-9]*'
+                            title="Valid Days Amount">
+                        <input class="form-control intervalField" id="Weeks" name="Weeks" placeholder="Weeks"
+                            pattern='[0-9]*' title="Valid Weeks Amount">
+                    </div>
+                    <!-- Start Date - when scheduler should start -->
+                    <div class="form-group" style="display: inline-block;">
+                        Start Date (optional) &nbsp;
+                        <input type="datetime-local" class="form-control" id="startDateTimeField" name="startDateTimeField">
+                    </div>
+                    <!-- End Date - when scheduler should stop -->
+                    <div class="form-group" style="display: inline-block;">
+                        End Date (optional) &nbsp; &nbsp;
+                        <input type="datetime-local" class="form-control" id="endDateTimeField" name="endDateTimeField">
+                    </div>
+                </div>
+                <!-- Submit button -->
+                <div class="form-group col-8">
+                    <button type="submit" class="btn btn-success" id="formSubmit">Submit</button>
+    
+                </div>
+            </form>
+        </div>
+    </body>
 </html>
