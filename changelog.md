@@ -25,3 +25,10 @@ Tidy and enhance frontend code
 
 ### 0.0.9
 Implement basic Python job functionality, no stdout capturing 
+
+### 0.1.1
+Substantial front end improvements, completely changed the add jobs page and added some stupid client side validation
+Decided to limit to shell jobs (local or remote). Python jobs were a bit more completed to implement 
+
+### 0.1.2
+Bug fixes and minor improvements

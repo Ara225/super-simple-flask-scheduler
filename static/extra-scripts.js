@@ -114,8 +114,12 @@ function confirmFieldsCompleted(groupNumber, classNameOfDependantElements, IDsOf
     }
     // Confirm that at least one of the Dependent fields is completed
     var countCompletedDependentFields = 0;
-    for (var i2 = 0; i2<document.getElementsByClassName(classNameOfDependantElements).length; i2++) {
-        if (document.getElementsByClassName(classNameOfDependantElements)[i2].value == '') {
+    var DependantElements = document.getElementsByClassName(classNameOfDependantElements)
+    for (var i2 = 0; i2<DependantElements.length; i2++) {
+        if (DependantElements[i2].value != '' && !DependantElements[i2].type.includes('checkbox')) {
+            countCompletedDependentFields++
+        }
+        else if (DependantElements[i2].checked == true) {
             countCompletedDependentFields++
         }
     }

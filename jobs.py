@@ -8,13 +8,16 @@ import subprocess
 from datetime import datetime
 from flask import flash
 from re import match
+from paramiko import RSAKey
+from paramiko.auth_handler import AuthenticationException
 
-def runShellCommandJob(command, jobId, JobResultsList):
+def runShellCommandJob(command, jobId, JobResultsList, client):
     """
     Use subprocess to run a shell command, get the results, create a dict with the result, and append it to JobResultsList 
         :param command: The command to run
         :param jobId: The name of the job
         :parm JobResultsList: Jobs results list
+        :parm client: Not used, for remote commands, exists only so they have the same number of args
     """
     # instigate a JobResults object
     currentJobResults = {}
@@ -40,38 +43,43 @@ def runShellCommandJob(command, jobId, JobResultsList):
     currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
-def runRemoteCommandJob(command, jobId, JobResultsList):
+def runRemoteCommandJob(command, jobId, JobResultsList, client):
     """
     Use subprocess to run a shell command, get the results, create a dict with the result, and append it to JobResultsList 
         :param command: The command to run
         :param jobId: The name of the job
         :parm JobResultsList: Jobs results list
+        :parm client: instance of SSHClient.Client
     """
     # instigate a JobResults object
     currentJobResults = {}
     currentJobResults['jobId'] = jobId
     currentJobResults['timeStarted'] = datetime.now()
     try:
+        client.connect()
+        currentJobResults['stdout'] = []
+        currentJobResults['stderr'] = []
+        tempVar = client.execute(command)
         # Run the command and collect the output as plain text, tidy up the line endings since they are fiddly
-        currentJobResults['stdout'] = subprocess.check_output(command).decode('utf-8').replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
-        # Subprocess only allows this to succeed if the return code is 0
-        currentJobResults['returnCode'] = 0
-    # Process subprocess.CalledProcessError
-    except subprocess.CalledProcessError as e:
-        currentJobResults['stdout'] = e.stdout().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
-        currentJobResults['stderr'] = e.stderr().replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
-        currentJobResults['returnCode'] = e.returncode
-    # Other exceptions, we don't get return codes here
+        for line in tempVar[0]:
+            currentJobResults['stdout'].append(line.replace('\r\n', '').replace('\\n', '').replace('\n', '').replace("'", "\'"))
+        for line in tempVar[1]:
+            currentJobResults['stderr'].append(line.replace('\r\n', '').replace('\\n', '').replace('\n', '').replace("'", "\'"))
+        currentJobResults['returnCode'] = 'Unspecified'
+        # Process subprocess.CalledProcessError
+    except AuthenticationException as e:
+        currentJobResults['stderr'] = str(e).replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
+        currentJobResults['returnCode'] = 'Unspecified'
+        return False
     except Exception as e:
         currentJobResults['stderr'] = str(e).replace('\r\n', '\n').replace('\\n', '\n').replace("'", "\'").split('\n')
         currentJobResults['returnCode'] = 'Unspecified'
-
     currentJobResults['timeCompleted'] = datetime.now()
-    currentJobResults['jobType'] = 'Shell Job'
+    currentJobResults['jobType'] = 'Remote Job'
     currentJobResults['command'] = command
     JobResultsList.append(currentJobResults)
 
-def scheduleOneOffJob(jobType, request, scheduler, JobResultsList):
+def scheduleOneOffJob(jobType, request, scheduler, JobResultsList, client=None):
     """
     Summary:
     Schedule one off job for a specified point in the future as specified in the DateTimeField of the form
@@ -89,7 +97,7 @@ def scheduleOneOffJob(jobType, request, scheduler, JobResultsList):
         if compareDate(whenToRun):
             # Schedule a shell job, args are passed to the function not shell command
             scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
-                             args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                             args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
                              trigger='date', run_date=whenToRun)
             flash('Job scheduled for ' + str(whenToRun))
             return True
@@ -105,7 +113,7 @@ def scheduleOneOffJob(jobType, request, scheduler, JobResultsList):
             return False
 
 
-def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList):
+def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client=None):
     """
     Summary:
     Schedule repeating job at the intervals defined in the interval field 
@@ -160,7 +168,7 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList):
                         return False 
                 # Schedule a job to run at the requested interval, args are passed to the function not command
                 scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
-                                 args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                                 args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
                                  trigger='interval', seconds=intervalFields[0], minutes=intervalFields[1], 
                                  hours=intervalFields[2], days=intervalFields[3], weeks=intervalFields[4], 
                                  start_date=schedulerStart, end_date=schedulerEnd)
@@ -175,7 +183,7 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList):
             flash('Error: Unable to schedule task due to unexpected error ' + str(e))
             return False
 
-def runJobNow(jobType, request, scheduler, JobResultsList):
+def runJobNow(jobType, request, scheduler, JobResultsList, client=None):
     """
     Summary:
     Run a job right now
@@ -189,7 +197,7 @@ def runJobNow(jobType, request, scheduler, JobResultsList):
     try:
         # Schedule a job now, args are passed to the function not command
         scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
-                         args=(request.form['command'], request.form['jobId'], JobResultsList), 
+                         args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
                          trigger='date', run_date=datetime.now())
         # This causes this to be displayed on the screen under the form
         flash('Job scheduled to run now')
