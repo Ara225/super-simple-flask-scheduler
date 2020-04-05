@@ -47,8 +47,24 @@ def index():
     Main page 
     :returns: rendered template MainPageTemplate.html
     '''   
+    # Generate secret key. Required by wtforms Doesn't store really so works only if you don't mess with the page
+    letters = string.ascii_letters + string.digits
+    app.config['SECRET_KEY'] =  ''.join(random.choice(letters) for i in range(60))
+    # Instate the form object
+    form = RemoveJobForm(request.form)
+    
+    # If this is a post request
+    if request.method == 'POST':
+        if request.form.get('RemoveJob', '') != '':
+            try:
+                scheduler.delete_job(request.form.get('RemoveJob'))
+            except Exception as e:
+                flash('Error: Unknown issue occurred: ' + str(e))
+        else:
+            flash('Error: Hidden form field tampered with')
+
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))
-    return render_template('MainPageTemplate.html', JobResultsList=JobResultsList, PendingJobs=jobs, shouldShowHeader=False)
+    return render_template('MainPageTemplate.html', JobResultsList=JobResultsList, PendingJobs=jobs, shouldShowHeader=False, wasCleaned=wasCleaned)
 
 def addJob():
     '''
@@ -118,7 +134,21 @@ def getJobs():
     Get Jobs using one of Flask APScheduler's job APIs (get_jobs)
     :returns: rendered template ViewJobsPageTemplate.html
     '''
-
+    # Generate secret key. Required by wtforms Doesn't store really so works only if you don't mess with the page
+    letters = string.ascii_letters + string.digits
+    app.config['SECRET_KEY'] =  ''.join(random.choice(letters) for i in range(60))
+    # Instate the form object
+    form = RemoveJobForm(request.form)
+    
+    # If this is a post request
+    if request.method == 'POST':
+        if request.form.get('RemoveJob', '') != '':
+            try:
+                scheduler.delete_job(request.form.get('RemoveJob'))
+            except Exception as e:
+                flash('Error: Unknown issue occurred: ' + str(e))
+        else:
+            flash('Error: Hidden form field tampered with')
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))
 
     return render_template('ViewJobsPageTemplate.html', jobs=jobs, shouldShowHeader=True) 
@@ -159,8 +189,8 @@ def runApp():
     scheduler.init_app(app)
     scheduler.start()
     # Add routes
-    app.add_url_rule("/", "/", index, methods=['GET'])
-    app.add_url_rule("/getjobs", "/getjobs", getJobs, methods=['GET'])
+    app.add_url_rule("/", "/", index, methods=['GET', 'POST'])
+    app.add_url_rule("/getjobs", "/getjobs", getJobs, methods=['GET', 'POST'])
     app.add_url_rule("/getjobsresults", "/getjobsresults", getJobsResults, methods=['GET'])
     app.add_url_rule("/addjob", "/addjob", addJob, methods=['GET', 'POST'])
     return app

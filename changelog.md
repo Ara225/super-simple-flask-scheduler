@@ -35,3 +35,6 @@ Bug fixes and minor improvements
 
 ### 0.1.3
 Significant frontend changes
+
+### 0.1.4
+Implement deleting pending jobs
