@@ -146,35 +146,30 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client=Non
                 intervalFields[count] = 0
             count += 1
         if intervalFieldsHaveValue == True:
-            # Validate that the seconds, hours and minutes are less than 60
-            if intervalFields[0] >= 60 or intervalFields[1] >= 60 or intervalFields[2] >= 60:
-                flash('Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty')
-                return False
-            else:
-                # This ensures that the start and end date fields are valid and are not in the past
-                schedulerEnd = request.form.get('EndDateTimeField', None)
-                schedulerStart = request.form.get('StartDateTimeField', None)
-                if schedulerStart == '':
-                    schedulerStart = None
-                elif schedulerStart != None: 
-                    if not compareDate(datetime.fromisoformat(schedulerStart)):
-                        flash('Error: Unable to schedule task, start date selected is in the past')
-                        return False
-                if schedulerEnd == '':
-                    schedulerEnd = None
-                elif schedulerEnd != None:
-                    if not compareDate(datetime.fromisoformat(schedulerEnd)):
-                        flash('Error: Unable to schedule task, end date selected is in the past')
-                        return False 
-                # Schedule a job to run at the requested interval, args are passed to the function not command
-                scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
-                                 args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
-                                 trigger='interval', seconds=intervalFields[0], minutes=intervalFields[1], 
-                                 hours=intervalFields[2], days=intervalFields[3], weeks=intervalFields[4], 
-                                 start_date=schedulerStart, end_date=schedulerEnd)
-                # This causes this to be displayed on the screen under the form
-                flash('Job scheduled to run at interval')
-                return True
+            # This ensures that the start and end date fields are valid and are not in the past
+            schedulerEnd = request.form.get('EndDateTimeField', None)
+            schedulerStart = request.form.get('StartDateTimeField', None)
+            if schedulerStart == '':
+                schedulerStart = None
+            elif schedulerStart != None: 
+                if not compareDate(datetime.fromisoformat(schedulerStart)):
+                    flash('Error: Unable to schedule task, start date selected is in the past')
+                    return False
+            if schedulerEnd == '':
+                schedulerEnd = None
+            elif schedulerEnd != None:
+                if not compareDate(datetime.fromisoformat(schedulerEnd)):
+                    flash('Error: Unable to schedule task, end date selected is in the past')
+                    return False 
+            # Schedule a job to run at the requested interval, args are passed to the function not command
+            scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
+                             args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
+                             trigger='interval', seconds=intervalFields[0], minutes=intervalFields[1], 
+                             hours=intervalFields[2], days=intervalFields[3], weeks=intervalFields[4], 
+                             start_date=schedulerStart, end_date=schedulerEnd)
+            # This causes this to be displayed on the screen under the form
+            flash('Job scheduled to run at interval')
+            return True
     except Exception as e:
         if 'Invalid isoformat string' in str(e):
             flash('Error: Invalid date provided, please try again')

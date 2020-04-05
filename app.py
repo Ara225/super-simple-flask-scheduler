@@ -53,10 +53,11 @@ def index():
     # Instate the form object
     form = RemoveJobForm(request.form)
     
-    # If this is a post request
+    # If this is a post request - to handle deleting jobs
     if request.method == 'POST':
         if request.form.get('RemoveJob', '') != '':
             try:
+                # Actually delete the job
                 scheduler.delete_job(request.form.get('RemoveJob'))
             except Exception as e:
                 flash('Error: Unknown issue occurred: ' + str(e))
@@ -140,7 +141,7 @@ def getJobs():
     # Instate the form object
     form = RemoveJobForm(request.form)
     
-    # If this is a post request
+    # If this is a post request - to handle deleting jobs
     if request.method == 'POST':
         if request.form.get('RemoveJob', '') != '':
             try:
