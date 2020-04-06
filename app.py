@@ -23,6 +23,8 @@ from jobs import *
 from forms import *
 from SSHclient import Client
 import os
+from yaml import load, Loader
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
 app = None
 scheduler = None
@@ -31,20 +33,29 @@ wasCleaned = False
 
 class Config(object):
     '''
-    Config for the Flask APScheduler. If you want the API enabled set SCHEDULER_API_ENABLED to True 
+    Config for the Flask APScheduler. Should accept any config option valid for APScheduler - just put it in Config.yaml 
+    jobstores and executors need to be in the format indicated in Config.yaml
     '''
-    JOBS = [
-        {'id': 'CleanupJob',
-         'func': '__main__:CleanupJob', 
-         'trigger':'interval', 
-         'hours': 1
-        }
-    ]
-    SCHEDULER_API_ENABLED = False
+    def __init__(self):
+        self._jobstores = False
+        self._executors = False
+        with open('Config.yaml') as f:
+            self.config = load(f, Loader=Loader)
+        for item in self.config:
+            # Dealing with custom jobstores and executors
+            if 'jobstores' == item:
+                self._jobstores = self.config[item]
+                continue
+            if 'executors' == item:
+                self._executors = self.config[item]
+                continue
+            exec('self.' + item + ' = self.config["' + item + '"]')
 
 def index(): 
     '''
     Main page 
+    Displays quick summary of jobs and the contents of both the pending and completed tasks pages
+    Accepts POST requests to handle deleting jobs (part of pending jobs page)
     :returns: rendered template MainPageTemplate.html
     '''   
     # Generate secret key. Required by wtforms Doesn't store really so works only if you don't mess with the page
@@ -164,7 +175,6 @@ def getJobsResults():
 def CleanupJob():
     '''
     Function to clean up JobResultsList to prevent it from getting too big 
-    TODO improve functionality
     '''
     global JobResultsList
     if len(JobResultsList) > 100:
@@ -182,11 +192,19 @@ def runApp():
     # Instigate app
     global app 
     app = Flask(__name__)
+    appconfig = Config()
     # Add config to app
-    app.config.from_object(Config())
+    app.config.from_object(appconfig)
     # Start scheduler
     global scheduler 
     scheduler = APScheduler()
+    # Add custom executors and jobstores It's kind of complicated, but the way of doing it through the Config() class won't work for this
+    if appconfig._jobstores:
+        for jobstore in appconfig._jobstores:
+            scheduler._scheduler.add_jobstore(appconfig._jobstores[jobstore]['type'], url=appconfig._jobstores[jobstore]['url'])
+    if appconfig._executors:
+        for executor in appconfig._executors:
+            scheduler._scheduler.add_executor(appconfig._executors[executor]['type'])
     scheduler.init_app(app)
     scheduler.start()
     # Add routes

@@ -41,3 +41,6 @@ Implement deleting pending jobs
 
 ### 0.1.5
 Remove the limitation on seconds, hours and minutes Not sure why I limited it to 60.
+
+### 0.1.6
+Move config into yaml file and implement custom jobstores and executors - see Config.yaml for examples
