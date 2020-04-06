@@ -2,8 +2,6 @@
 Contains test cases specifically related to job scheduling Should test every flashed error message
 except the ones displayed on an exception as I haven't figured out how to trigger one yet
 '''
-from sys import path
-path.append('..')
 from flask import Flask
 from flask_testing import TestCase
 import unittest
@@ -54,15 +52,6 @@ class TestScheduleJobs(TestCase):
         response = self.client.post(
             '/addjob',
             data={'command': 'echo Hello World'},
-            follow_redirects=True
-        )
-        self.assertIn(b'Error: Required form fields empty', response.data)
-
-    def test_schedule_with_only_typeSelector_completed(self):
-        self.client.get("/addjob")
-        response = self.client.post(
-            '/addjob',
-            data={'typeSelector': jobType},
             follow_redirects=True
         )
         self.assertIn(b'Error: Required form fields empty', response.data)
@@ -220,6 +209,109 @@ class TestScheduleJobs(TestCase):
         )
         self.assertIn(b'Error: Unable to schedule task, end date selected is in the past', response.data)
 
+    def test_schedule_job_with_host_and_no_user(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host user not provided', response.data)
+
+    def test_schedule_job_with_host_and_user_no_password(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost', 'targetHostUser': 'NotAValidUser'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Neither password or SSH key provided', response.data)
+
+    def test_schedule_job_with_host_user_and_invalid_password(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost', 'targetHostUser': 'NotAValidUser', 'targetHostPassword': 'NotAValidPassword'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Test connection failed, job not scheduled due to unexpected error', response.data)
+
+    def test_schedule_job_with_user_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostUser': 'NotAValidUser'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+    def test_schedule_job_with_password_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostPassword': 'NotAValidPassword'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+    def test_schedule_job_with_checkbox_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'shouldUseExistingSSHKey': 'on'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+
+    def test_schedule_job_with_ssh_key_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostSSHKey': 'NotAValidSSHKey'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+    def test_schedule_job_with_cron_timings(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={
+                'jobId': 'TestJob', 
+                'command': 'echo Hello World', 
+                'ShouldUseCron': 'on', 
+                'CronSeconds': 1,
+                'CronMinutes': 2,
+                'CronHours': 3,
+                'CronDayOfWeek': 4,
+                'CronWeeks': 5,
+                'CronDays': 6,
+                'CronMonth': 7,
+                'CronYear': 2021
+            },
+            follow_redirects=True
+        )
+        job = self.client.get("/getjobs")
+        self.assertIn(b'Job scheduled to run at cron interval', response.data)
+        self.assertIn(b'1 Second of Minute', job.data)
+        self.assertIn(b'2 Minute of Hour', job.data)
+        self.assertIn(b'3 Hour of Day', job.data)
+        self.assertIn(b'4 Day of the Week', job.data)
+        self.assertIn(b'5 Week of Month', job.data)
+        self.assertIn(b'6 Days of the month', job.data)
+        self.assertIn(b'7 Month of the year', job.data)
+        self.assertIn(b'2021 Year', job.data)
+
+
+    def test_schedule_job_with_no_cron_fields_completed(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'ShouldUseCron': 'on'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Unable to schedule cron type job - cron fields have no value', response.data)
+
 if __name__ == '__main__':
-    jobType = 'Shell Job'
-    exec(unittest.main())
+    unittest.main()

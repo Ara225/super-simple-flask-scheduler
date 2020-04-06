@@ -11,8 +11,11 @@ class Client:
         self.targetHostUser = request.form.get('targetHostUser', '')
         self.targetHostPassword = request.form.get('targetHostPassword', '')
         self.targetHostSSHKey = request.form.get('targetHostSSHKey', '')
-        self.targetHostPassphrase = request.form.get('targetHostPassphrase', '')
-        self.shouldUseExistingSSHKey = request.form.get('shouldUseExistingSSHKey', False)
+        self.targetHostPassphrase = request.form.get('targetHostPassphrase', '') 
+        if request.form.get('shouldUseExistingSSHKey', 'off') == 'on':
+            self.shouldUseExistingSSHKey = True
+        else:
+             self.shouldUseExistingSSHKey = False
         self.client = None
 
     def get_ssh_key(self):

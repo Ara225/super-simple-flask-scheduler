@@ -170,6 +170,8 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client=Non
             # This causes this to be displayed on the screen under the form
             flash('Job scheduled to run at interval')
             return True
+        else:
+            return False 
     except Exception as e:
         if 'Invalid isoformat string' in str(e):
             flash('Error: Invalid date provided, please try again')
@@ -177,6 +179,66 @@ def scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client=Non
         else:
             flash('Error: Unable to schedule task due to unexpected error ' + str(e))
             return False
+
+def scheduleCronJob(jobType, request, scheduler, JobResultsList, client=None):
+    """
+    Summary:
+    Schedule cron jobs with the cron expression defined in the cron field 
+    Parameters:
+        :param jobType: The job type as contained in the function name - e.g. Shell, Python, Remote
+        :param request: The POST request from the browser 
+        :param scheduler: The Scheduler instance
+        :param JobResultsList: The list of job results for the function to append to
+    :returns: Boolean indicating whether the job was successfully scheduled
+    """
+    try:
+        cronFieldsHaveValue = None
+        # These can be returned even if they have nothing or only whitespace in them so we need to do some processing
+        cronFields = [
+            request.form.get('CronSeconds', ''), 
+            request.form.get('CronMinutes', ''), 
+            request.form.get('CronHours', ''), 
+            request.form.get('CronDayOfWeek', ''), 
+            request.form.get('CronWeeks', ''), 
+            request.form.get('CronDays', ''), 
+            request.form.get('CronMonth', ''), 
+            request.form.get('CronYear', '')
+        ]
+        # These fields come out as strings so need to do some processing to make them work
+        count = 0
+        for i in cronFields:
+            # If field isn't blank
+            if i != '' and i.replace(' ', '') != '' and i != None:
+                cronFieldsHaveValue = True
+                cronFields[count] = int(i)
+            # Defaults to * meaning any value 
+            else:
+                cronFields[count] = '*'
+            count += 1
+        if cronFieldsHaveValue == True:
+            # Schedule a job to run at the requested interval, args are passed to the function not command
+            scheduler.add_job(request.form['jobId'], '__main__:run' + jobType + 'CommandJob', 
+                             args=(request.form['command'], request.form['jobId'], JobResultsList, client), 
+                             trigger='cron', 
+                             year=cronFields[7],
+                             month=cronFields[6],
+                             day=cronFields[5],
+                             week=cronFields[4],
+                             day_of_week=cronFields[3],
+                             hour=cronFields[2],
+                             minute=cronFields[1],
+                             second=cronFields[0]
+                            )
+
+            # This causes this to be displayed on the screen under the form
+            flash('Job scheduled to run at cron interval')
+            return True
+        else:
+            flash('Error: Unable to schedule cron type job - cron fields have no value')
+            return False
+    except Exception as e:
+        flash('Error: Unable to schedule task due to unexpected error ' + str(e))
+        return False
 
 def runJobNow(jobType, request, scheduler, JobResultsList, client=None):
     """

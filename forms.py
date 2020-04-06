@@ -44,6 +44,17 @@ class AddJobForm(Form):
     weeks = StringField('Weeks', validators=[validators.optional(strip_whitespace=True)])
     startDateTimeField = StringField('StartDateTimeField', validators=[validators.optional(strip_whitespace=True)])
     endDateTimeField = StringField('EndDateTimeField', validators=[validators.optional(strip_whitespace=True)])
+    
+    #Cron
+    ShouldUseCron = BooleanField('ShouldUseCron', validators=[validators.optional(strip_whitespace=True)])
+    CronSeconds = StringField('CronSeconds', validators=[validators.optional(strip_whitespace=True)])
+    CronMinutes = StringField('CronMinutes', validators=[validators.optional(strip_whitespace=True)])
+    CronHours = StringField('CronHours', validators=[validators.optional(strip_whitespace=True)])
+    CronDays = StringField('CronDays', validators=[validators.optional(strip_whitespace=True)])
+    CronWeeks = StringField('CronWeeks', validators=[validators.optional(strip_whitespace=True)])
+    CronDayOfWeek = StringField('CronDayOfWeek', validators=[validators.optional(strip_whitespace=True)])
+    CronMonth = StringField('CronMonth', validators=[validators.optional(strip_whitespace=True)])
+    CronYear = StringField('CronYear', validators=[validators.optional(strip_whitespace=True)])
 
 class RemoveJobForm(Form):
     '''

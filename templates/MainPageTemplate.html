@@ -10,6 +10,26 @@
       <a class="nav-item nav-link" href="/getjobsresults">View Completed Tasks</a>
   </div>
 </nav>
+<!-- Alert area -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <br>
+        {% for message in messages %}
+            {% if "Error" not in message[1]: %}
+                <div class="alert alert-info">
+                    <strong>Success! </strong> {{ message[1] }}
+                </div>
+            {% endif %}
+            {% if "Error" in message[1]: %}
+                <div class="alert alert-warning">
+                    {{ message[1] }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <br>
+    {% endif %}
+{% endwith %}
 <br>
 <br>
 <div class="col-12 text-center" style="display: inline-block;">
