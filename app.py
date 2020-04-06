@@ -69,7 +69,8 @@ def index():
         if request.form.get('RemoveJob', '') != '':
             try:
                 # Actually delete the job
-                scheduler.delete_job(request.form.get('RemoveJob'))
+                scheduler.remove_job(request.form.get('RemoveJob'))
+                flash('Job successfully deleted')
             except Exception as e:
                 flash('Error: Unknown issue occurred: ' + str(e))
         else:
@@ -95,7 +96,7 @@ def addJob():
             global JobResultsList
             #### Shell jobs 
             if form.validate() and request.form.get('targetHost', '') == '':
-                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '':
+                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '' or request.form.get('targetHostSSHKey', '') != '' or request.form.get('shouldUseExistingSSHKey', False) != False:
                     flash('Error: Target host not supplied')
                 else:
                     client = None
@@ -156,13 +157,13 @@ def getJobs():
     if request.method == 'POST':
         if request.form.get('RemoveJob', '') != '':
             try:
-                scheduler.delete_job(request.form.get('RemoveJob'))
+                scheduler.remove_job(request.form.get('RemoveJob'))
+                flash('Job successfully deleted')
             except Exception as e:
                 flash('Error: Unknown issue occurred: ' + str(e))
         else:
             flash('Error: Hidden form field tampered with')
     jobs = json.loads(get_jobs().get_data().decode('utf-8'))
-
     return render_template('ViewJobsPageTemplate.html', jobs=jobs, shouldShowHeader=True) 
 
 def getJobsResults():

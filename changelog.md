@@ -44,3 +44,7 @@ Remove the limitation on seconds, hours and minutes Not sure why I limited it to
 
 ### 0.1.6
 Move config into yaml file and implement custom jobstores and executors - see Config.yaml for examples
+
+### 0.1.7
+Add requirements.txt, move test files into main folder again (Config.yaml was causing problems), ensure
+new function was covered by tests 

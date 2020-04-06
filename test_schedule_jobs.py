@@ -2,8 +2,6 @@
 Contains test cases specifically related to job scheduling Should test every flashed error message
 except the ones displayed on an exception as I haven't figured out how to trigger one yet
 '''
-from sys import path
-path.append('..')
 from flask import Flask
 from flask_testing import TestCase
 import unittest
@@ -219,6 +217,70 @@ class TestScheduleJobs(TestCase):
             follow_redirects=True
         )
         self.assertIn(b'Error: Unable to schedule task, end date selected is in the past', response.data)
+
+    def test_schedule_job_with_host_and_no_user(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host user not provided', response.data)
+
+    def test_schedule_job_with_host_and_user_no_password(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost', 'targetHostUser': 'NotAValidUser'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Neither password or SSH key provided', response.data)
+
+    def test_schedule_job_with_host_user_and_invalid_password(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHost': 'NotAValidHost', 'targetHostUser': 'NotAValidUser', 'targetHostPassword': 'NotAValidPassword'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Test connection failed, job not scheduled due to unexpected error', response.data)
+
+    def test_schedule_job_with_user_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostUser': 'NotAValidUser'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+    def test_schedule_job_with_password_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostPassword': 'NotAValidPassword'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+    def test_schedule_job_with_checkbox_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'shouldUseExistingSSHKey': 'false'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
+
+
+    def test_schedule_job_with_ssh_key_and_no_host(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'targetHostSSHKey': 'NotAValidSSHKey'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Target host not supplied', response.data)
 
 if __name__ == '__main__':
     jobType = 'Shell Job'
