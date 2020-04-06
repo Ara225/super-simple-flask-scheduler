@@ -96,7 +96,8 @@ def addJob():
             global JobResultsList
             #### Shell jobs 
             if form.validate() and request.form.get('targetHost', '') == '':
-                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '' or request.form.get('targetHostSSHKey', '') != '' or request.form.get('shouldUseExistingSSHKey', False) != False:
+                # If the credentials fields are completed
+                if request.form.get('targetHostUser', '') != '' or request.form.get('targetHostPassword', '') != '' or request.form.get('targetHostSSHKey', '') != '' or request.form.get('shouldUseExistingSSHKey', None) == 'on':
                     flash('Error: Target host not supplied')
                 else:
                     client = None
@@ -104,6 +105,8 @@ def addJob():
                     #### One off job at specific time
                     if request.form.get('DateTimeField', '') != '' :
                         scheduleOneOffJob(jobType, request, scheduler, JobResultsList, client)
+                    elif request.form.get('ShouldUseCron', None) == 'on':
+                        scheduleCronJob(jobType, request, scheduler, JobResultsList, client)
                     else:
                         #### Repeating job at specified intervals
                         success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client)
@@ -116,7 +119,7 @@ def addJob():
                 if request.form.get('targetHostUser', '') == '':
                     flash('Error: Target host user not provided')
                 # If none of the password/credential fields is completed
-                elif request.form.get('targetHostPassword', '') == '' and request.form.get('targetHostSSHKey', '') == '' and request.form.get('shouldUseExistingSSHKey', '') == '':
+                elif request.form.get('targetHostPassword', '') == '' and request.form.get('targetHostSSHKey', '') == '' and request.form.get('shouldUseExistingSSHKey', None) == None:
                     flash('Error: Neither password or SSH key provided')
                 else: 
                     # Instigate the client object to do SSH
@@ -126,6 +129,8 @@ def addJob():
                         #### One off job at specific time
                         if request.form.get('DateTimeField', '') != '' :
                             scheduleOneOffJob(jobType, request, scheduler, JobResultsList, client)
+                        elif request.form.get('ShouldUseCron', None) == 'on':
+                            scheduleCronJob(jobType, request, scheduler, JobResultsList, client)
                         else:
                             #### Repeating job at specified intervals
                             success = scheduleRepeatingJob(jobType, request, scheduler, JobResultsList, client)

@@ -47,7 +47,7 @@
                 <th>Job Name</th>
                 <th>Function</th>
                 <th>Trigger</th>
-                <th>Repeat Every</th>
+                <th>Repeat Pattern</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Next Run Time</th>
@@ -65,19 +65,46 @@
                     {% if job['trigger'] == 'interval' %}
                         <td>
                         {% if job.get('seconds') %}
-                            {{ job['seconds'] }} Second(s)<br>
+                            Every {{ job['seconds'] }} Second(s)<br>
                         {% endif %}
                         {% if job.get('minutes') %}
-                            {{ job['minutes'] }} Minutes(s)<br>
+                            Every {{ job['minutes'] }} Minutes(s)<br>
                         {% endif %}
                         {% if job.get('hours') %}
-                            {{ job['hours'] }} Hour(s)<br>
+                            Every {{ job['hours'] }} Hour(s)<br>
                         {% endif %}
                         {% if job.get('days') %}
-                            {{ job['days'] }} Day(s)<br>
+                            Every {{ job['days'] }} Day(s)<br>
                         {% endif %}
                         {% if job.get('weeks') %}
-                            {{ job['weeks'] }} Week(s)<br>
+                            Every {{ job['weeks'] }} Week(s)<br>
+                        {% endif %}
+                        </td>
+                    {% elif job['trigger'] == 'cron' %}
+                        <td>
+                        {% if job.get('second') %}
+                            {{ job['second'] }} Second of Minute<br>
+                        {% endif %}
+                        {% if job.get('minute') %}
+                            {{ job['minute'] }} Minute of Hour<br>
+                        {% endif %}
+                        {% if job.get('hour') %}
+                            {{ job['hour'] }} Hour of Day<br>
+                        {% endif %}
+                        {% if job.get('day_of_week') %}
+                            {{ job['day_of_week'] }} Day of the Week<br>
+                        {% endif %}
+                        {% if job.get('week') %}
+                            {{ job['week'] }} Week of Month<br>
+                        {% endif %}
+                        {% if job.get('day') %}
+                            {{ job['day'] }} Days of the month<br>
+                        {% endif %}
+                        {% if job.get('month') %}
+                            {{ job['month'] }} Month of the year<br>
+                        {% endif %}
+                        {% if job.get('year') %}
+                            {{ job['year'] }} Year<br>
                         {% endif %}
                         </td>
                     {% else %}
@@ -95,7 +122,11 @@
                     {% else %}
                         <td>N/A</td>
                     {% endif %}
-                    <td>{{ job['next_run_time'].split('.')[0].split('T')[1].split('+')[0] }}<br>{{ job['next_run_time'].split('T')[0] }}</td>
+                    {% if job.get('next_run_time') %}
+                        <td>{{ job['next_run_time'].split('.')[0].split('T')[1].split('+')[0] }}<br>{{ job['next_run_time'].split('T')[0] }}</td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
                     <td><form action="" method="post" role="form">
                             <input value="{{ job['id'] }}" id="RemoveJob" name="RemoveJob" hidden>
                             <button type="submit" class="btn btn-success">Cancel Job</button>

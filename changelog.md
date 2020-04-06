@@ -48,3 +48,6 @@ Move config into yaml file and implement custom jobstores and executors - see Co
 ### 0.1.7
 Add requirements.txt, move test files into main folder again (Config.yaml was causing problems), ensure
 new function was covered by tests 
+
+### 0.1.8
+Implement cron job scheduling type 

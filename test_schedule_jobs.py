@@ -56,15 +56,6 @@ class TestScheduleJobs(TestCase):
         )
         self.assertIn(b'Error: Required form fields empty', response.data)
 
-    def test_schedule_with_only_typeSelector_completed(self):
-        self.client.get("/addjob")
-        response = self.client.post(
-            '/addjob',
-            data={'typeSelector': jobType},
-            follow_redirects=True
-        )
-        self.assertIn(b'Error: Required form fields empty', response.data)
-
     ### Tests for scheduling one off jobs
 
     def test_schedule_job_for_past_date(self):
@@ -267,7 +258,7 @@ class TestScheduleJobs(TestCase):
         self.client.get("/addjob")
         response = self.client.post(
             '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'shouldUseExistingSSHKey': 'false'},
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'shouldUseExistingSSHKey': 'on'},
             follow_redirects=True
         )
         self.assertIn(b'Error: Target host not supplied', response.data)
@@ -282,6 +273,45 @@ class TestScheduleJobs(TestCase):
         )
         self.assertIn(b'Error: Target host not supplied', response.data)
 
+    def test_schedule_job_with_cron_timings(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={
+                'jobId': 'TestJob', 
+                'command': 'echo Hello World', 
+                'ShouldUseCron': 'on', 
+                'CronSeconds': 1,
+                'CronMinutes': 2,
+                'CronHours': 3,
+                'CronDayOfWeek': 4,
+                'CronWeeks': 5,
+                'CronDays': 6,
+                'CronMonth': 7,
+                'CronYear': 2021
+            },
+            follow_redirects=True
+        )
+        job = self.client.get("/getjobs")
+        self.assertIn(b'Job scheduled to run at cron interval', response.data)
+        self.assertIn(b'1 Second of Minute', job.data)
+        self.assertIn(b'2 Minute of Hour', job.data)
+        self.assertIn(b'3 Hour of Day', job.data)
+        self.assertIn(b'4 Day of the Week', job.data)
+        self.assertIn(b'5 Week of Month', job.data)
+        self.assertIn(b'6 Days of the month', job.data)
+        self.assertIn(b'7 Month of the year', job.data)
+        self.assertIn(b'2021 Year', job.data)
+
+
+    def test_schedule_job_with_no_cron_fields_completed(self):
+        self.client.get("/addjob")
+        response = self.client.post(
+            '/addjob',
+            data={'jobId': 'TestJob', 'command': 'echo Hello World', 'ShouldUseCron': 'on'},
+            follow_redirects=True
+        )
+        self.assertIn(b'Error: Unable to schedule cron type job - cron fields have no value', response.data)
+
 if __name__ == '__main__':
-    jobType = 'Shell Job'
-    exec(unittest.main())
+    unittest.main()
