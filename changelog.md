@@ -35,3 +35,12 @@ Bug fixes and minor improvements
 
 ### 0.1.3
 Significant frontend changes
+
+### 0.1.4
+Implement deleting pending jobs
+
+### 0.1.5
+Remove the limitation on seconds, hours and minutes Not sure why I limited it to 60.
+
+### 0.1.6
+Move config into yaml file and implement custom jobstores and executors - see Config.yaml for examples

@@ -44,3 +44,11 @@ class AddJobForm(Form):
     weeks = StringField('Weeks', validators=[validators.optional(strip_whitespace=True)])
     startDateTimeField = StringField('StartDateTimeField', validators=[validators.optional(strip_whitespace=True)])
     endDateTimeField = StringField('EndDateTimeField', validators=[validators.optional(strip_whitespace=True)])
+
+class RemoveJobForm(Form):
+    '''
+    Form for the view jobs page. This contains a number of fields:
+    * RemoveJob field - StringField type - Job name/ID to delete
+    '''
+    # Required fields
+    RemoveJob = StringField('RemoveJob')

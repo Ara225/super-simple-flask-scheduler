@@ -1,0 +1,15 @@
+JOBS:
+    - id: 'CleanupJob'
+      func: '__main__:CleanupJob'
+      trigger: 'interval'
+      hours: 1
+SCHEDULER_API_ENABLED: False
+# How to define custom jobstores - this may not work with multiple jobstores 
+#jobstores:
+#    default:
+#        type: sqlalchemy
+#        url: 'sqlite:///jobs.sqlite'
+# How to define custom executors
+#executors:
+#    default:
+#        type: processpool

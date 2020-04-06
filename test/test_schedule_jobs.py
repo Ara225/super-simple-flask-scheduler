@@ -152,15 +152,6 @@ class TestScheduleJobs(TestCase):
         )
         self.assertIn(b'Job scheduled to run at interval', response.data)
 
-    def test_schedule_job_with_bad_interval(self):
-        self.client.get("/addjob")
-        response = self.client.post(
-            '/addjob',
-            data={'jobId': 'TestJob', 'command': 'echo "Hello World"', 'Seconds': 67},
-            follow_redirects=True
-        )
-        self.assertIn(b'Error: Invalid input - second, hour or minute interval field contains a value equal to or over sixty', response.data)
-
     def test_schedule_job_with_letters_in_interval_fields(self):
         self.client.get("/addjob")
         response = self.client.post(

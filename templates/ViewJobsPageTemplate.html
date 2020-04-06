@@ -31,6 +31,7 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Next Run Time</th>
+                <th>Cancel Job</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -75,6 +76,11 @@
                         <td>N/A</td>
                     {% endif %}
                     <td>{{ job['next_run_time'].split('.')[0].split('T')[1].split('+')[0] }}<br>{{ job['next_run_time'].split('T')[0] }}</td>
+                    <td><form action="" method="post" role="form">
+                            <input value="{{ job['id'] }}" id="RemoveJob" name="RemoveJob" hidden>
+                            <button type="submit" class="btn btn-success">Cancel Job</button>
+                        </form>
+                    </td>
                     </tr>
                 {% endfor %}
                 </tbody>
